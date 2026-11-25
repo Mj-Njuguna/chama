@@ -1,0 +1,1398 @@
+openapi: 3.0.3
+info:
+  title: Chama API (DRAFT)
+  version: 0.0.0-draft
+  description: DRAFT contract used by the mobile app until the backend publishes its schema. Replaced
+    by backend/openapi/schema.yaml.
+paths:
+  /api/v1/chamas:
+    post:
+      operationId: chamas_create
+      description: Create a chama owned by the caller; it becomes the session's active chama.
+      tags:
+        - chamas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChamaRequest'
+      security:
+        - bearerSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedChama'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: rate_limited (per user per day)
+  /api/v1/auth/devices:
+    get:
+      operationId: auth_devices_list
+      description: The caller's devices (not revoked), most recently seen first.
+      tags:
+        - auth
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+  /api/v1/auth/devices/{device_id}:
+    delete:
+      operationId: auth_devices_revoke
+      description: "Revoke one of the caller's devices: its sessions end and its push token is revoked."
+      parameters:
+        - in: path
+          name: device_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - auth
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+  /api/v1/auth/logout:
+    post:
+      operationId: auth_logout
+      description: End this session.
+      tags:
+        - auth
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+  /api/v1/auth/logout-all:
+    post:
+      operationId: auth_logout_all
+      description: End every session of this user, on every device (AUTH-09).
+      tags:
+        - auth
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+  /api/v1/auth/otp/request:
+    post:
+      operationId: auth_otp_request
+      description: Send a one-time code to a phone number. The same response for every number.
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequestRequest'
+        required: true
+      security:
+        - {}
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpRequested'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_phone, validation_error
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: rate_limited, locked
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: service_unavailable
+  /api/v1/auth/otp/verify:
+    post:
+      operationId: auth_otp_verify
+      description: Verify the code, bind the device, start a session and return its tokens.
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+        required: true
+      security:
+        - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_code, validation_error
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: locked
+  /api/v1/auth/pin:
+    put:
+      operationId: auth_pin_set
+      description: Set the first server PIN (needs a fresh OTP on this session).
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PinRequest'
+        required: true
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: pin_rejected, validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: step_up_required
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: pin_already_set
+  /api/v1/auth/pin/change:
+    post:
+      operationId: auth_pin_change
+      description: Change the server PIN; needs the current one.
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PinChangeRequest'
+        required: true
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_pin, pin_rejected
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: step_up_required, pin_not_set
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: pin_locked, rate_limited
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: service_unavailable
+  /api/v1/auth/pin/forgot:
+    post:
+      operationId: auth_pin_forgot
+      description: 'Forgot PIN: request a new PIN. Needs a fresh step-up OTP; completes only after the
+
+        cooling-off. The current PIN keeps working; other devices are alerted.'
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PinRequest'
+        required: true
+      security:
+        - bearerSession: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PinReset'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: pin_rejected, validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: step_up_required, pin_not_set, cooling_off
+  /api/v1/auth/pin/forgot/cancel:
+    post:
+      operationId: auth_pin_forgot_cancel
+      description: Cancel the waiting reset from any signed-in device; no step-up.
+      tags:
+        - auth
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found (no reset is waiting)
+  /api/v1/auth/pin/forgot/complete:
+    post:
+      operationId: auth_pin_forgot_complete
+      description: Complete the reset after the cooling-off, with a fresh step-up OTP.
+      tags:
+        - auth
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: step_up_required, cooling_off, chama_frozen
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found (no reset is waiting)
+  /api/v1/auth/push-token:
+    put:
+      operationId: auth_push_token_set
+      description: This device's push token. Stored only; nothing is sent yet.
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushTokenRequest'
+        required: true
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+    delete:
+      operationId: auth_push_token_delete
+      description: This device's push token. Stored only; nothing is sent yet.
+      tags:
+        - auth
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+  /api/v1/auth/step-up/otp/request:
+    post:
+      operationId: auth_step_up_otp_request
+      description: Send a code to the caller's own number for step-up (same limits as login codes).
+      tags:
+        - auth
+      security:
+        - bearerSession: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpRequested'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: rate_limited, locked
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: service_unavailable
+  /api/v1/auth/step-up/otp/verify:
+    post:
+      operationId: auth_step_up_otp_verify
+      description: "Verify the step-up code: this session's OTP factor is fresh for 5 minutes."
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepUpOtpVerifyRequest'
+        required: true
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreshFactor'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_code, validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: locked
+  /api/v1/auth/step-up/pin:
+    post:
+      operationId: auth_step_up_pin
+      description: "Verify the server PIN: this session's PIN factor is fresh for 15 minutes."
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PinRequest'
+        required: true
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreshFactor'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_pin
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: step_up_required, pin_not_set
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: pin_locked, rate_limited
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: service_unavailable
+  /api/v1/auth/switch-chama:
+    post:
+      operationId: auth_switch_chama
+      description: Make one of the caller's chamas the session's active chama.
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwitchChamaRequest'
+        required: true
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwitchedChama'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+  /api/v1/auth/token/refresh:
+    post:
+      operationId: auth_token_refresh
+      description: Rotate the refresh token. The previous token, within the grace window, gets the same
+        pair.
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+        required: true
+      security:
+        - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: rate_limited (per IP)
+  /api/v1/invitations/{chama_id}/accept:
+    post:
+      operationId: invitations_accept
+      description: Accept an invitation to a chama (the invited user only). Then switch to it.
+      parameters:
+        - in: path
+          name: chama_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - invitations
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Accepted'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available (no invitation for this user)
+  /api/v1/invitations/{chama_id}/decline:
+    post:
+      operationId: invitations_decline
+      description: Decline an invitation (the invited user only).
+      parameters:
+        - in: path
+          name: chama_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - invitations
+      security:
+        - bearerSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available (no invitation for this user)
+  /api/v1/me:
+    get:
+      operationId: me
+      description: The caller, their session and their memberships. Works with or without a chama.
+      tags:
+        - me
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+    patch:
+      operationId: me_update
+      description: Set your own display name. Only the session's user; never another user's row.
+      tags:
+        - me
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMeUpdateRequest'
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_token, token_expired, session_revoked, session_expired, refresh_reused
+  /api/v1/chama/home:
+    get:
+      operationId: chama_home_retrieve
+      tags:
+        - chama
+      description: DRAFT. Home dashboard of the active chama.
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChamaHome'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: ''
+components:
+  schemas:
+    Accepted:
+      type: object
+      properties:
+        chama_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+      required:
+        - chama_id
+        - role
+    ChannelEnum:
+      enum:
+        - whatsapp
+        - sms
+      type: string
+      description: '* `whatsapp` - whatsapp
+
+        * `sms` - sms'
+    CreateChamaRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          default: ''
+          maxLength: 120
+    CreatedChama:
+      type: object
+      properties:
+        chama_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        active_chama_id:
+          type: string
+          format: uuid
+          description: The new chama; now active.
+      required:
+        - chama_id
+        - active_chama_id
+        - name
+        - role
+    DeviceList:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceOut'
+      required:
+        - devices
+    DeviceOut:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        platform:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        last_seen_at:
+          type: string
+          format: date-time
+        current:
+          type: boolean
+          description: The device this request comes from.
+      required:
+        - created_at
+        - current
+        - id
+        - last_seen_at
+        - name
+        - platform
+    DeviceRequest:
+      type: object
+      properties:
+        installation_id:
+          type: string
+          minLength: 1
+          description: The installation's stable ID, kept in secure storage.
+          pattern: ^[A-Za-z0-9_-]{8,64}$
+        platform:
+          $ref: '#/components/schemas/PlatformEnum'
+        name:
+          type: string
+          default: ''
+          maxLength: 64
+      required:
+        - installation_id
+        - platform
+    Error:
+      type: object
+      description: The body of every error response.
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+      required:
+        - error
+    ErrorCodeEnum:
+      type: string
+      enum:
+        - validation_error
+        - malformed_request
+        - not_authenticated
+        - permission_denied
+        - not_found
+        - method_not_allowed
+        - unsupported_media_type
+        - rate_limited
+        - invalid_phone
+        - invalid_code
+        - locked
+        - service_unavailable
+        - invalid_token
+        - token_expired
+        - session_revoked
+        - session_expired
+        - refresh_reused
+        - chama_not_available
+        - step_up_required
+        - cooling_off
+        - chama_frozen
+        - pin_not_set
+        - pin_already_set
+        - pin_rejected
+        - invalid_pin
+        - pin_locked
+        - state_conflict
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          allOf:
+            - $ref: '#/components/schemas/ErrorCodeEnum'
+          description: Switch on this.
+        message:
+          type: string
+          description: For logs only; never parse or show it.
+        retry_after:
+          type: integer
+          description: Seconds to wait.
+        reason:
+          allOf:
+            - $ref: '#/components/schemas/ErrorReasonEnum'
+          description: Sub-code of invalid_phone, pin_rejected, state_conflict.
+        attempts_left:
+          type: integer
+          description: With invalid_pin.
+        factors:
+          type: array
+          items:
+            $ref: '#/components/schemas/StepUpFactorEnum'
+          description: 'With step_up_required: verify each, in order, then retry.'
+        field_errors:
+          type: object
+          additionalProperties: {}
+          description: Validation errors per field.
+      required:
+        - code
+        - message
+    ErrorReasonEnum:
+      type: string
+      enum:
+        - invalid_format
+        - invalid_number
+        - country_not_allowed
+        - not_mobile
+        - not_six_digits
+        - repeated
+        - sequence
+        - phone_digits
+    FreshFactor:
+      type: object
+      properties:
+        factor:
+          $ref: '#/components/schemas/StepUpFactorEnum'
+        fresh_for:
+          type: integer
+          description: Seconds this factor counts as fresh.
+      required:
+        - factor
+        - fresh_for
+    Login:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        access_token:
+          type: string
+        access_expires_in:
+          type: integer
+          description: Seconds.
+        refresh_token:
+          type: string
+        refresh_expires_in:
+          type: integer
+          description: Seconds.
+        user:
+          $ref: '#/components/schemas/LoginUser'
+        active_chama_id:
+          type: string
+          format: uuid
+          nullable: true
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/MembershipOut'
+      required:
+        - access_expires_in
+        - access_token
+        - active_chama_id
+        - memberships
+        - refresh_expires_in
+        - refresh_token
+        - session_id
+        - user
+    LoginUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        is_new:
+          type: boolean
+      required:
+        - id
+        - is_new
+    Me:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/MeUser'
+        session_id:
+          type: string
+          format: uuid
+        session_started_at:
+          type: string
+          format: date-time
+          description: When this device's session began with a code sign-in (UTC). Refreshes, unlocks
+            and chama switches do not change it.
+        device_id:
+          type: string
+          format: uuid
+        active_chama_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Null when no chama is chosen or the membership is no longer active.
+        role:
+          type: string
+          nullable: true
+          description: Role in the active chama.
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/MeMembership'
+        has_pin:
+          type: boolean
+          description: Whether a server step-up PIN is set.
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionsEnum'
+          description: What the role allows in the active chama (empty without one). A display hint only,
+            never authorization.
+      required:
+        - active_chama_id
+        - device_id
+        - has_pin
+        - memberships
+        - permissions
+        - role
+        - session_id
+        - session_started_at
+        - user
+    MeMembership:
+      type: object
+      properties:
+        chama_id:
+          type: string
+          format: uuid
+        chama_name:
+          type: string
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        status:
+          $ref: '#/components/schemas/MembershipStatusEnum'
+      required:
+        - chama_id
+        - chama_name
+        - role
+        - status
+    MeUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        phone:
+          type: string
+          description: E.164, e.g. +254712345678.
+        display_name:
+          type: string
+          nullable: true
+          description: Null until set; greet with the chama name until then.
+      required:
+        - display_name
+        - id
+        - phone
+    MembershipOut:
+      type: object
+      properties:
+        chama_id:
+          type: string
+          format: uuid
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        status:
+          $ref: '#/components/schemas/MembershipStatusEnum'
+      required:
+        - chama_id
+        - role
+        - status
+    OtpRequestRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+          minLength: 1
+          description: Any accepted format, e.g. 0712345678.
+          maxLength: 32
+        device_id:
+          type: string
+          minLength: 1
+          description: The app installation's stable ID (used for per-device limits).
+          pattern: ^[A-Za-z0-9_-]{8,64}$
+      required:
+        - phone
+    OtpRequested:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        expires_in:
+          type: integer
+          description: Seconds until the code expires.
+        resend_after:
+          type: integer
+          description: Seconds before another code may be sent.
+      required:
+        - challenge_id
+        - channel
+        - expires_in
+        - resend_after
+    OtpVerifyRequest:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          minLength: 1
+          maxLength: 12
+        device:
+          $ref: '#/components/schemas/DeviceRequest'
+      required:
+        - challenge_id
+        - code
+        - device
+    PatchedMeUpdateRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+          description: 1 to 50 characters after trimming; no control or invisible characters.
+          maxLength: 200
+    PermissionsEnum:
+      enum:
+        - view_group
+        - manage_members
+        - manage_constitution
+        - record_receipts
+        - approve
+      type: string
+      description: 'DRAFT: display hints only.'
+    PinChangeRequest:
+      type: object
+      properties:
+        current_pin:
+          type: string
+          minLength: 1
+          maxLength: 12
+        new_pin:
+          type: string
+          minLength: 1
+          maxLength: 12
+      required:
+        - current_pin
+        - new_pin
+    PinRequest:
+      type: object
+      properties:
+        pin:
+          type: string
+          minLength: 1
+          maxLength: 12
+      required:
+        - pin
+    PinReset:
+      type: object
+      properties:
+        effective_at:
+          type: string
+          format: date-time
+          description: Can be completed from this time.
+        expires_at:
+          type: string
+          format: date-time
+          description: Must be completed before this time.
+      required:
+        - effective_at
+        - expires_at
+    PlatformEnum:
+      enum:
+        - android
+        - ios
+      type: string
+      description: '* `android` - android
+
+        * `ios` - ios'
+    PushTokenRequest:
+      type: object
+      properties:
+        token_type:
+          $ref: '#/components/schemas/TokenTypeEnum'
+        token:
+          type: string
+          minLength: 1
+          description: The push token as the platform gives it (printable ASCII, at most 255).
+          pattern: ^[!-~]{1,255}$
+      required:
+        - token
+        - token_type
+    RefreshRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+          maxLength: 128
+      required:
+        - refresh_token
+    RoleEnum:
+      enum:
+        - chair
+        - treasurer
+        - secretary
+        - member
+      type: string
+      description: '* `chair` - Chair
+
+        * `treasurer` - Treasurer
+
+        * `secretary` - Secretary
+
+        * `member` - Member'
+    SourceEnum:
+      enum:
+        - provider
+        - manual
+      type: string
+      description: '* `provider` - provider
+
+        * `manual` - manual'
+    StepUpFactorEnum:
+      enum:
+        - otp
+        - pin
+      type: string
+      description: '* `otp` - otp
+
+        * `pin` - pin'
+    StepUpOtpVerifyRequest:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          minLength: 1
+          maxLength: 12
+      required:
+        - challenge_id
+        - code
+    SwitchChamaRequest:
+      type: object
+      properties:
+        chama_id:
+          type: string
+          format: uuid
+      required:
+        - chama_id
+    SwitchedChama:
+      type: object
+      properties:
+        active_chama_id:
+          type: string
+          format: uuid
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+        - active_chama_id
+        - role
+    TokenPair:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        access_token:
+          type: string
+        access_expires_in:
+          type: integer
+          description: Seconds.
+        refresh_token:
+          type: string
+        refresh_expires_in:
+          type: integer
+          description: Seconds.
+      required:
+        - access_expires_in
+        - access_token
+        - refresh_expires_in
+        - refresh_token
+        - session_id
+    TokenTypeEnum:
+      enum:
+        - expo
+        - fcm
+      type: string
+      description: '* `expo` - expo
+
+        * `fcm` - fcm'
+    CycleStatusEnum:
+      type: string
+      enum:
+        - paid
+        - due
+        - overdue
+        - none
+    ChamaHome:
+      type: object
+      description: DRAFT. Values are null until the phase that computes them ships.
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        member:
+          type: object
+          nullable: true
+          properties:
+            savings_minor:
+              type: integer
+              nullable: true
+            cycle_status:
+              allOf:
+                - $ref: '#/components/schemas/CycleStatusEnum'
+              nullable: true
+            cycle_due_date:
+              type: string
+              format: date
+              nullable: true
+            cycle_balance_minor:
+              type: integer
+              nullable: true
+            active_loan_balance_minor:
+              type: integer
+              nullable: true
+          required:
+            - savings_minor
+            - cycle_status
+            - cycle_due_date
+            - cycle_balance_minor
+            - active_loan_balance_minor
+        official:
+          type: object
+          nullable: true
+          description: Present only for officials (chair, treasurer, secretary).
+          properties:
+            liquidity_minor:
+              type: integer
+              nullable: true
+            collection_rate_percent:
+              type: integer
+              nullable: true
+              description: 0-100, computed by the server.
+            pending_approvals:
+              type: integer
+              nullable: true
+            overdue_count:
+              type: integer
+              nullable: true
+          required:
+            - liquidity_minor
+            - collection_rate_percent
+            - pending_approvals
+            - overdue_count
+      required:
+        - role
+        - member
+        - official
+    MembershipStatusEnum:
+      type: string
+      enum:
+        - active
+        - invited
+        - revoked
+  securitySchemes:
+    bearerSession:
+      type: http
+      scheme: bearer
+      description: Opaque access token (chm_at_...) from /auth/otp/verify or /auth/token/refresh. Valid
+        15 minutes.

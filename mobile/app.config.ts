@@ -29,6 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     './plugins/withCleartextPolicy',
     // Android 12+ device-to-device transfer ignores allowBackup; exclude all app data.
     './plugins/withDataExtractionRules',
+    ['expo-local-authentication', { faceIDPermission: 'Allow Chama to use Face ID to unlock the app.' }],
   ],
   experiments: { typedRoutes: true },
 });
