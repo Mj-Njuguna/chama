@@ -23,7 +23,8 @@
       "/node_modules/",
       "/android/"
     ],
-    "clearMocks": true
+    "clearMocks": true,
+    "testTimeout": 15000
   },
   "dependencies": {
     "@expo/vector-icons": "15.1.1",
@@ -34,6 +35,7 @@
     "expo-dev-client": "58.0.21",
     "expo-font": "58.0.12",
     "expo-linking": "58.0.17",
+    "expo-local-authentication": "58.0.3",
     "expo-router": "58.0.32",
     "expo-secure-store": "58.0.3",
     "expo-status-bar": "58.0.5",
@@ -42,7 +44,8 @@
     "react": "19.3.0",
     "react-native": "0.88.1",
     "react-native-safe-area-context": "5.11.1",
-    "react-native-screens": "4.30.1"
+    "react-native-screens": "4.30.1",
+    "zustand": "5.1.0"
   },
   "devDependencies": {
     "@testing-library/react-native": "14.1.0",

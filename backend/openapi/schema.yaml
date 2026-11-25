@@ -785,6 +785,35 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: permission_denied, step_up_required, pin_not_set, chama_frozen,
             cooling_off
+  /api/v1/chama/home:
+    get:
+      operationId: chama_home
+      description: |-
+        The home dashboard of the active chama: the caller's own figures, plus group figures for
+        officials.
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChamaHome'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
   /api/v1/chama/invitations:
     post:
       operationId: chama_invite
@@ -1006,6 +1035,95 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: chama_not_available
+  /api/v1/chama/receipts:
+    get:
+      operationId: chama_receipts
+      description: Manual receipts of the active chama. Officials list them; recording
+        needs a fresh PIN.
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen,
+            cooling_off
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+    post:
+      operationId: chama_receipt_create
+      description: Manual receipts of the active chama. Officials list them; recording
+        needs a fresh PIN.
+      tags:
+      - chama
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptInRequest'
+        required: true
+      security:
+      - bearerSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptOut'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen,
+            cooling_off
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'state_conflict: duplicate_receipt, member_not_active'
   /api/v1/chama/security-events:
     get:
       operationId: chama_security_events
@@ -1258,6 +1376,25 @@ components:
       - chama_id
       - member_code
       - role
+    ChamaHome:
+      type: object
+      description: Values are null until the module that computes them is live.
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        member:
+          allOf:
+          - $ref: '#/components/schemas/HomeMember'
+          nullable: true
+        official:
+          allOf:
+          - $ref: '#/components/schemas/HomeOfficial'
+          nullable: true
+          description: Present only for officials (chair, treasurer, secretary).
+      required:
+      - member
+      - official
+      - role
     ChamaList:
       type: object
       properties:
@@ -1289,14 +1426,6 @@ components:
       - name
       - role
       - status
-    ChannelEnum:
-      enum:
-      - whatsapp
-      - sms
-      type: string
-      description: |-
-        * `whatsapp` - whatsapp
-        * `sms` - sms
     ConstitutionOut:
       type: object
       properties:
@@ -1413,6 +1542,18 @@ components:
       - member_code
       - name
       - role
+    CycleStatusEnum:
+      enum:
+      - paid
+      - due
+      - overdue
+      - none
+      type: string
+      description: |-
+        * `paid` - paid
+        * `due` - due
+        * `overdue` - overdue
+        * `none` - none
     DeviceList:
       type: object
       properties:
@@ -1587,6 +1728,8 @@ components:
             * `repeated` - repeated
             * `sequence` - sequence
             * `phone_digits` - phone_digits
+            * `duplicate_receipt` - duplicate_receipt
+            * `member_not_active` - member_not_active
         attempts_left:
           type: integer
           description: With invalid_pin.
@@ -1626,6 +1769,8 @@ components:
       - repeated
       - sequence
       - phone_digits
+      - duplicate_receipt
+      - member_not_active
       type: string
       description: |-
         * `invalid_format` - invalid_format
@@ -1636,6 +1781,8 @@ components:
         * `repeated` - repeated
         * `sequence` - sequence
         * `phone_digits` - phone_digits
+        * `duplicate_receipt` - duplicate_receipt
+        * `member_not_active` - member_not_active
     FreshFactor:
       type: object
       properties:
@@ -1655,6 +1802,56 @@ components:
           format: date-time
       required:
       - frozen_at
+    HomeMember:
+      type: object
+      properties:
+        savings_minor:
+          type: integer
+          nullable: true
+        cycle_status:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/CycleStatusEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        cycle_due_date:
+          type: string
+          format: date
+          nullable: true
+        cycle_balance_minor:
+          type: integer
+          nullable: true
+        active_loan_balance_minor:
+          type: integer
+          nullable: true
+      required:
+      - active_loan_balance_minor
+      - cycle_balance_minor
+      - cycle_due_date
+      - cycle_status
+      - savings_minor
+    HomeOfficial:
+      type: object
+      properties:
+        liquidity_minor:
+          type: integer
+          nullable: true
+        collection_rate_percent:
+          type: integer
+          maximum: 100
+          minimum: 0
+          nullable: true
+          description: 0-100, computed by the server.
+        pending_approvals:
+          type: integer
+          nullable: true
+        overdue_count:
+          type: integer
+          nullable: true
+      required:
+      - collection_rate_percent
+      - liquidity_minor
+      - overdue_count
+      - pending_approvals
     InterestMethodEnum:
       enum:
       - reducing
@@ -1947,7 +2144,7 @@ components:
           type: string
           format: uuid
         channel:
-          $ref: '#/components/schemas/ChannelEnum'
+          $ref: '#/components/schemas/OtpRequestedChannelEnum'
         expires_in:
           type: integer
           description: Seconds until the code expires.
@@ -1959,6 +2156,14 @@ components:
       - channel
       - expires_in
       - resend_after
+    OtpRequestedChannelEnum:
+      enum:
+      - whatsapp
+      - sms
+      type: string
+      description: |-
+        * `whatsapp` - whatsapp
+        * `sms` - sms
     OtpVerifyRequest:
       type: object
       properties:
@@ -2200,6 +2405,92 @@ components:
       required:
       - token
       - token_type
+    ReceiptChannelEnum:
+      enum:
+      - bank
+      - mpesa
+      type: string
+      description: |-
+        * `bank` - Bank
+        * `mpesa` - Mpesa
+    ReceiptInRequest:
+      type: object
+      properties:
+        channel:
+          $ref: '#/components/schemas/ReceiptChannelEnum'
+        reference:
+          type: string
+          minLength: 1
+          description: Bank slip number or M-Pesa code.
+          maxLength: 60
+        amount_minor:
+          type: integer
+          maximum: 1000000000
+          minimum: 1
+        received_on:
+          type: string
+          format: date
+          description: Date on the slip (Africa/Nairobi).
+        member_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Omit to leave it for the resolver.
+        note:
+          type: string
+          default: ''
+          maxLength: 200
+      required:
+      - amount_minor
+      - channel
+      - received_on
+      - reference
+    ReceiptList:
+      type: object
+      properties:
+        receipts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReceiptOut'
+      required:
+      - receipts
+    ReceiptOut:
+      type: object
+      properties:
+        receipt_id:
+          type: string
+          format: uuid
+        channel:
+          $ref: '#/components/schemas/ReceiptChannelEnum'
+        reference:
+          type: string
+        amount_minor:
+          type: integer
+        received_on:
+          type: string
+          format: date
+        member_id:
+          type: string
+          format: uuid
+          nullable: true
+        note:
+          type: string
+        recorded_by_member_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - amount_minor
+      - channel
+      - created_at
+      - member_id
+      - note
+      - receipt_id
+      - received_on
+      - recorded_by_member_id
+      - reference
     RefreshRequest:
       type: object
       properties:

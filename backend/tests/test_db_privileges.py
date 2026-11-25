@@ -23,6 +23,10 @@ READ_ONLY_TABLES = {
     # Sessions end by revocation, never deletion.
     "accounts_authsession": {"SELECT", "INSERT", "UPDATE"},
     "accounts_authtoken": {"SELECT", "INSERT"},  # write-once retired hashes
+    # The ledger is append-only: corrections are compensating transactions.
+    "ledger_ledgertransaction": {"SELECT", "INSERT"},
+    "ledger_ledgerentry": {"SELECT", "INSERT"},
+    "ledger_receipt": {"SELECT", "INSERT"},
     # A PIN is replaced by updating its row, never deleted.
     "accounts_steppin": {"SELECT", "INSERT", "UPDATE"},
     # Chamas, memberships, constitutions and cooling-off changes are closed or revoked, never
