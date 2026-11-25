@@ -1,0 +1,52 @@
+# Docs stay local: only the root README is published
+*.md
+!/README.md
+docs/
+.claude/
+*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
+credentials.json
+
+# Docker / local data
+.docker-data/
+backend/.data/
+
+# Node / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+mobile/android/
+mobile/ios/
+*.apk
+*.aab
+npm-debug.log*
+
+# IDE / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
