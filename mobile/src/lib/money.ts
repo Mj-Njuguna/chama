@@ -27,7 +27,7 @@ export function formatMoney(minor: number): string {
 }
 
 /**
- * Display form used by the signed-in screens (design 3a): whole shillings without ".00", cents
+ * Display form used by the signed-in screens: whole shillings without ".00", cents
  * only when there are some. 1500000 -> "KES 15,000"; 1500050 -> "KES 15,000.50". Same integer-only
  * rules as formatMoney.
  */
