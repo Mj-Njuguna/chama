@@ -1,0 +1,307 @@
+{
+  "description": "Phone normalization contract shared by backend (core/phones.py) and mobile (M1b). Each vector has an input and either expected (E.164) or error (invalid_format | invalid_number | country_not_allowed | not_mobile). allowed_countries defaults to default_allowed_countries; its first entry is the region for numbers written without +.",
+  "default_allowed_countries": [
+    "KE"
+  ],
+  "vectors": [
+    {
+      "input": "0712345678",
+      "expected": "+254712345678",
+      "note": "national format, 07 prefix"
+    },
+    {
+      "input": "0110123456",
+      "expected": "+254110123456",
+      "note": "national format, 01 prefix"
+    },
+    {
+      "input": "712345678",
+      "expected": "+254712345678",
+      "note": "9 digits without the leading 0"
+    },
+    {
+      "input": "110123456",
+      "expected": "+254110123456",
+      "note": "9 digits without the leading 0, 01 range"
+    },
+    {
+      "input": "254712345678",
+      "expected": "+254712345678",
+      "note": "country code without +"
+    },
+    {
+      "input": "+254712345678",
+      "expected": "+254712345678",
+      "note": "already E.164"
+    },
+    {
+      "input": "+254 712 345 678",
+      "expected": "+254712345678",
+      "note": "spaces"
+    },
+    {
+      "input": "0712-345-678",
+      "expected": "+254712345678",
+      "note": "dashes"
+    },
+    {
+      "input": "0712.345.678",
+      "expected": "+254712345678",
+      "note": "dots"
+    },
+    {
+      "input": "(0712) 345 678",
+      "expected": "+254712345678",
+      "note": "parentheses"
+    },
+    {
+      "input": "07 12 34 56 78",
+      "expected": "+254712345678",
+      "note": "pairs of digits"
+    },
+    {
+      "input": "  0712345678  ",
+      "expected": "+254712345678",
+      "note": "surrounding whitespace"
+    },
+    {
+      "input": "+254 0712 345678",
+      "expected": "+254712345678",
+      "note": "national 0 kept after the country code"
+    },
+    {
+      "input": "254-0712345678",
+      "expected": "+254712345678",
+      "note": "national 0 kept after the country code, no +"
+    },
+    {
+      "input": "0701234567",
+      "expected": "+254701234567",
+      "note": "07x mobile range (70)"
+    },
+    {
+      "input": "0711234567",
+      "expected": "+254711234567",
+      "note": "07x mobile range (71)"
+    },
+    {
+      "input": "0721234567",
+      "expected": "+254721234567",
+      "note": "07x mobile range (72)"
+    },
+    {
+      "input": "0731234567",
+      "expected": "+254731234567",
+      "note": "07x mobile range (73)"
+    },
+    {
+      "input": "0741234567",
+      "expected": "+254741234567",
+      "note": "07x mobile range (74)"
+    },
+    {
+      "input": "0751234567",
+      "expected": "+254751234567",
+      "note": "07x mobile range (75)"
+    },
+    {
+      "input": "0761234567",
+      "expected": "+254761234567",
+      "note": "07x mobile range (76)"
+    },
+    {
+      "input": "0771234567",
+      "expected": "+254771234567",
+      "note": "07x mobile range (77)"
+    },
+    {
+      "input": "0781234567",
+      "expected": "+254781234567",
+      "note": "07x mobile range (78)"
+    },
+    {
+      "input": "0791234567",
+      "expected": "+254791234567",
+      "note": "07x mobile range (79)"
+    },
+    {
+      "input": "0100123456",
+      "expected": "+254100123456",
+      "note": "01x mobile range (100)"
+    },
+    {
+      "input": "0101123456",
+      "expected": "+254101123456",
+      "note": "01x mobile range (101)"
+    },
+    {
+      "input": "0102123456",
+      "expected": "+254102123456",
+      "note": "01x mobile range (102)"
+    },
+    {
+      "input": "0110123456",
+      "expected": "+254110123456",
+      "note": "01x mobile range (110)"
+    },
+    {
+      "input": "0111123456",
+      "expected": "+254111123456",
+      "note": "01x mobile range (111)"
+    },
+    {
+      "input": "0112123456",
+      "expected": "+254112123456",
+      "note": "01x mobile range (112)"
+    },
+    {
+      "input": "0113123456",
+      "expected": "+254113123456",
+      "note": "01x mobile range (113)"
+    },
+    {
+      "input": "0114123456",
+      "expected": "+254114123456",
+      "note": "01x mobile range (114)"
+    },
+    {
+      "input": "0115123456",
+      "expected": "+254115123456",
+      "note": "01x mobile range (115)"
+    },
+    {
+      "input": "",
+      "error": "invalid_format",
+      "note": "empty"
+    },
+    {
+      "input": "   ",
+      "error": "invalid_format",
+      "note": "whitespace only"
+    },
+    {
+      "input": "abc",
+      "error": "invalid_format",
+      "note": "letters"
+    },
+    {
+      "input": "0712345678 ext 12",
+      "error": "invalid_format",
+      "note": "extensions are not accepted"
+    },
+    {
+      "input": "0712345678x",
+      "error": "invalid_format",
+      "note": "trailing letter"
+    },
+    {
+      "input": "0712345678\u200b",
+      "error": "invalid_format",
+      "note": "invisible character (zero-width space)"
+    },
+    {
+      "input": "\uff10712345678",
+      "error": "invalid_format",
+      "note": "non-ASCII digit (full-width zero)"
+    },
+    {
+      "input": "07123+45678",
+      "error": "invalid_format",
+      "note": "+ not at the start"
+    },
+    {
+      "input": "++254712345678",
+      "error": "invalid_format",
+      "note": "double +"
+    },
+    {
+      "input": "000000000000000000000000000000000",
+      "error": "invalid_format",
+      "note": "longer than 32 characters"
+    },
+    {
+      "input": "071234567",
+      "error": "invalid_number",
+      "note": "too short"
+    },
+    {
+      "input": "07123456789",
+      "error": "invalid_number",
+      "note": "too long"
+    },
+    {
+      "input": "00254712345678",
+      "error": "invalid_number",
+      "note": "00 international prefix is not accepted"
+    },
+    {
+      "input": "0800123456",
+      "error": "invalid_number",
+      "note": "not a valid Kenyan number in the library metadata"
+    },
+    {
+      "input": "0201234567",
+      "error": "not_mobile",
+      "note": "Nairobi fixed line"
+    },
+    {
+      "input": "+254202123456",
+      "error": "not_mobile",
+      "note": "fixed line in E.164"
+    },
+    {
+      "input": "0412345678",
+      "error": "not_mobile",
+      "note": "Mombasa fixed line"
+    },
+    {
+      "input": "+255712345678",
+      "error": "country_not_allowed",
+      "note": "Tanzanian mobile; only KE allowed"
+    },
+    {
+      "input": "+256712345678",
+      "error": "country_not_allowed",
+      "note": "Ugandan mobile; only KE allowed"
+    },
+    {
+      "input": "+250788123456",
+      "error": "country_not_allowed",
+      "note": "Rwandan mobile; only KE allowed"
+    },
+    {
+      "input": "+255712345678",
+      "expected": "+255712345678",
+      "note": "the country allowlist is a setting: TZ mobile accepted when TZ is allowed",
+      "allowed_countries": [
+        "KE",
+        "TZ"
+      ]
+    },
+    {
+      "input": "0712345678",
+      "expected": "+254712345678",
+      "note": "numbers without + are read in the FIRST allowed country",
+      "allowed_countries": [
+        "KE",
+        "TZ"
+      ]
+    },
+    {
+      "input": "+14155552671",
+      "error": "not_mobile",
+      "note": "FIXED_LINE_OR_MOBILE (ambiguous plan, US) is rejected even when its country is allowed",
+      "allowed_countries": [
+        "US"
+      ]
+    },
+    {
+      "input": "4155552671",
+      "error": "not_mobile",
+      "note": "FIXED_LINE_OR_MOBILE in national format",
+      "allowed_countries": [
+        "US"
+      ]
+    }
+  ]
+}

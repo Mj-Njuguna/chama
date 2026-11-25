@@ -26,4 +26,24 @@ backend/   API and background jobs (Django)
 mobile/    Android app (React Native + Expo)
 ```
 
-Setup instructions will be added as the project takes shape.
+## Run it locally
+
+You need Docker Desktop, [`just`](https://github.com/casey/just) and Node.js 22 or newer.
+
+```sh
+cd backend
+just up          # start the API and its services on http://localhost:8001
+just test        # run the backend tests
+```
+
+```sh
+cd mobile
+npm ci
+npx expo start   # open the app on an Android emulator or device
+```
+
+Copy `backend/.env.example` to `backend/.env` to change ports or settings.
+
+## License
+
+[AGPL-3.0](LICENSE)

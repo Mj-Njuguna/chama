@@ -1,0 +1,8 @@
+openapi: 3.0.3
+info:
+  title: Chama API
+  version: 0.1.0
+  description: API consumed by the Chama mobile app. The TypeScript client is generated
+    from this schema.
+paths: {}
+components: {}
