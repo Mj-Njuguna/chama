@@ -531,5 +531,3 @@ class PinForgotCancelView(APIView):
     def post(self, request: Request) -> Response:
         cancel_reset(_session(request))
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
