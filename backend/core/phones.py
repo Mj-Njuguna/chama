@@ -1,8 +1,8 @@
 """Phone number normalization to E.164 (invariant 3). The ONE place raw phone input is parsed.
 
-Every boundary that accepts a phone number (OTP login, staff invitations, occupants, payer MSISDN
-matching) calls :func:`normalize_phone` and stores only its result. The behaviour is pinned by
-``tests/data/phone-vectors.json``, which the mobile app tests against as well.
+Every boundary that accepts a phone number (OTP login, member invitations, roster import, payer
+MSISDN matching) calls :func:`normalize_phone` and stores only its result. The behaviour is pinned
+by ``tests/data/phone-vectors.json``, which the mobile app tests against as well.
 
 Rules:
 

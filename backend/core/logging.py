@@ -9,8 +9,8 @@ Redaction rules:
   match but ``mapping`` does not.
 - Phone numbers inside any string value (including the message) are masked to their last three
   digits: ``+254712345678`` -> ``[PHONE…678]``. Enough to tell numbers apart in support.
-- Session tokens (``rca_at_…``, ``rca_rt_…``) and ``Bearer <value>`` inside any string value,
-  including formatted exception tracebacks, become ``rca_[REDACTED]`` / ``Bearer [REDACTED]``.
+- Session tokens (``chm_at_…``, ``chm_rt_…``) and ``Bearer <value>`` inside any string value,
+  including formatted exception tracebacks, become ``chm_[REDACTED]`` / ``Bearer [REDACTED]``.
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ _PHONE = re.compile(
     r"|0[17]\d{2}[ -]\d{3}[ -]?\d{3}"
     r")(?![\w.-])"
 )
-_SESSION_TOKEN = re.compile(r"rca_[a-z]{2}_[A-Za-z0-9_-]*")
+_SESSION_TOKEN = re.compile(r"chm_[a-z]{2}_[A-Za-z0-9_-]*")
 _BEARER_VALUE = re.compile(r"(?i)\b(bearer)\s+[^\s'\",;]+")
 _WORD_SPLIT = re.compile(r"[^a-z0-9]+")
 _CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
@@ -72,7 +72,7 @@ def _mask_phone(match: re.Match[str]) -> str:
 
 
 def redact_text(text: str) -> str:
-    text = _SESSION_TOKEN.sub("rca_" + REDACTED, text)
+    text = _SESSION_TOKEN.sub("chm_" + REDACTED, text)
     text = _BEARER_VALUE.sub(lambda m: f"{m.group(1)} {REDACTED}", text)
     return _PHONE.sub(_mask_phone, text)
 

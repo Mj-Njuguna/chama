@@ -4,7 +4,7 @@
 
 ``code`` is a stable machine-readable string the mobile app switches on; ``message`` is for
 developers and may change. Optional fields: ``retry_after`` (seconds), ``field_errors``
-(validation errors per field) and ``factors`` (step-up, from M1 PR 6).
+(validation errors per field) and ``factors`` (step-up).
 
 Raise :class:`ApiError` (or a subclass) for domain errors. DRF's own exceptions and Django's
 ``Http404``/``PermissionDenied`` are mapped to the same shape. Never put a phone number, code or
@@ -42,6 +42,25 @@ class ApiError(exceptions.APIException):
             self.status_code = status_code
         self.extra = extra
         super().__init__(detail=message or self.default_detail, code=self.error_code)
+
+
+def chama_frozen() -> ApiError:
+    """403: the chama is frozen ("this wasn't me") until an operator reviews it."""
+    return ApiError(
+        "chama_frozen",
+        "This chama is frozen until it is reviewed.",
+        status_code=status.HTTP_403_FORBIDDEN,
+    )
+
+
+def cooling_off(retry_after: int) -> ApiError:
+    """403: the change is waiting out its safety period."""
+    return ApiError(
+        "cooling_off",
+        "This change is waiting out its safety period.",
+        status_code=status.HTTP_403_FORBIDDEN,
+        retry_after=retry_after,
+    )
 
 
 # DRF exception class -> stable code. Anything else uses the exception's own default_code.
