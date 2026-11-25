@@ -26,20 +26,32 @@ DOMAIN_APPS = [
     "apps.reports",
 ]
 
+# django.contrib.admin and sessions are absent: no password or cookie logins.
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
-    "core",  # model-free shared kernel
+    "django.contrib.auth",  # for AUTH_USER_MODEL only: no password logins, no permissions
+    "core",  # model-free shared kernel; registers the tenancy system checks
     "rest_framework",
     "drf_spectacular",
     *DOMAIN_APPS,
 ]
+
+# accounts.User is the user model. No authentication backends, so Django can never
+# authenticate anyone by password; logins are OTP-based with opaque session tokens.
+AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS: list[str] = []
 
 MIDDLEWARE = [
     "core.middleware.CorrelationIdMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Authentication sets request.authenticated_chama_id from the session; the chama context
+    # middleware must come after it (enforced by core.checks, tenancy.E003).
+    "apps.accounts.middleware.SessionAuthenticationMiddleware",
+    "core.middleware.ChamaContextMiddleware",
 ]
+TENANCY_AUTHENTICATION_MIDDLEWARE = "apps.accounts.middleware.SessionAuthenticationMiddleware"
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -96,9 +108,95 @@ LIST_DEFAULT_PAGE_SIZE = 50
 LIST_MAX_PAGE_SIZE = 200
 LIST_CURSOR_MAX_AGE_SECONDS = 24 * 3600
 
+# ---------------------------------------------------------------- Step-up
+# Argon2id cost for the server PIN. A 6-digit PIN has only a million values, so the pepper and
+# the attempt limits protect it, not this cost; parameters are stored on each hash and a hash
+# is upgraded on the next successful check when these change.
+PIN_ARGON2_TIME_COST = env_int("PIN_ARGON2_TIME_COST", 3)
+PIN_ARGON2_MEMORY_KIB = env_int("PIN_ARGON2_MEMORY_KIB", 64 * 1024)
+PIN_ARGON2_PARALLELISM = env_int("PIN_ARGON2_PARALLELISM", 1)
+# Wrong PINs before a lock; then an escalating lockout and a fresh OTP to continue.
+PIN_MAX_FAILED_ATTEMPTS = 5
+PIN_LOCKOUT_STEPS_SECONDS = (900, 3600, 86400)
+PIN_LOCKOUT_RESET_HOURS = 24  # the level resets after this long without a lockout
+# Wrong PINs per user per Nairobi day, across unlocks; then locked until midnight.
+PIN_DAILY_FAILURE_CAP = 10
+# PIN checks per session per window (limit, seconds), before any hashing (Redis).
+PIN_VERIFY_LIMIT_PER_SESSION = (10, 900)
+# How long a verified factor counts as fresh for step-up on the same session.
+STEP_UP_PIN_FRESH_SECONDS = 15 * 60
+STEP_UP_OTP_FRESH_SECONDS = 5 * 60
+# Cooling-off for payment linking (24-72 h), and how long after that an official has to apply
+# the change before it expires.
+CHAMA_CHANGE_COOLING_OFF_HOURS = 48
+PENDING_CHANGE_EXPIRY_HOURS = 7 * 24
+# Forgot PIN: the new PIN can be completed only after this (then within the expiry above).
+PIN_RESET_COOLING_OFF_HOURS = 48
+# A device first seen this recently may not do the highest-risk actions, unless the chama
+# itself is younger than this.
+NEW_DEVICE_WINDOW_HOURS = 48
+
+# ---------------------------------------------------------------- Sessions
+ACCESS_TOKEN_TTL_SECONDS = env_int("ACCESS_TOKEN_TTL_SECONDS", 900)
+REFRESH_TOKEN_TTL_SECONDS = env_int("REFRESH_TOKEN_TTL_SECONDS", 30 * 86400)
+# Absolute limit on a session, however often it is refreshed; then a fresh OTP is needed.
+SESSION_MAX_AGE_SECONDS = env_int("SESSION_MAX_AGE_SECONDS", 90 * 86400)
+# The previous refresh token re-returns the same successor pair within this window.
+REFRESH_GRACE_SECONDS = env_int("REFRESH_GRACE_SECONDS", 10)
+# Refreshes per client IP per window: load protection only (carrier NAT puts many users behind
+# one IP). Fails open if Redis is down.
+REFRESH_LIMIT_PER_IP = (300, 60)
+
+# ---------------------------------------------------------------- One-time codes
+OTP_LENGTH = 6
+OTP_TTL_SECONDS = env_int("OTP_TTL_SECONDS", 300)
+OTP_MAX_ATTEMPTS = env_int("OTP_MAX_ATTEMPTS", 5)
+OTP_RESEND_AFTER_SECONDS = env_int("OTP_RESEND_AFTER_SECONDS", 60)
+# Number lockout after a challenge is locked: 15 min, 1 h, 24 h; the level resets after a quiet
+# OTP_LOCKOUT_RESET_SECONDS since the last lockout.
+OTP_LOCKOUT_STEPS_SECONDS = [900, 3600, 86400]
+OTP_LOCKOUT_RESET_SECONDS = env_int("OTP_LOCKOUT_RESET_SECONDS", 86400)
+# Fixed-window limits in Redis as (hits, window seconds). Per number is the primary control.
+# Per IP is deliberately loose: mobile carrier NAT puts many users behind one IP.
+OTP_LIMIT_PER_NUMBER = (3, 900)
+OTP_LIMIT_PER_IP = (60, 3600)
+OTP_LIMIT_PER_DEVICE = (5, 3600)
+# Codes per number per day (Africa/Nairobi), counted in Postgres.
+OTP_DAILY_CAP_PER_NUMBER = env_int("OTP_DAILY_CAP_PER_NUMBER", 10)
+# Estimated cost per accepted code, in KES minor units. 0 until provider prices are confirmed.
+OTP_ESTIMATED_COST_MINOR = {"whatsapp": 0, "sms": 0}
+# All-numbers sends per day above which an alert fires once (OTP-pumping defence). Max 9999.
+OTP_DAILY_SEND_ALERT_THRESHOLD = env_int("OTP_DAILY_SEND_ALERT_THRESHOLD", 1000)
+# Challenges are deleted after this (longer than the daily-cap window).
+OTP_CHALLENGE_RETENTION_HOURS = 48
+
+# Chamas one user may create per Nairobi day (POST /chamas), counted in Postgres.
+CHAMAS_PER_USER_PER_DAY = env_int("CHAMAS_PER_USER_PER_DAY", 3)
+# Wording version of the invite terms a member accepts when joining.
+INVITE_TERMS_VERSION = "2026-11-25"
+
 # Proxies in front of the app that append X-Forwarded-For (core.client_ip). Production must set
 # it explicitly.
 TRUSTED_PROXY_COUNT = env_int("TRUSTED_PROXY_COUNT", 0)
+
+# ---------------------------------------------------------------- Notifications
+# OTP senders per channel (dotted path to a zero-argument factory). Real providers are added once
+# their APIs are verified; until then production configures none, so OTP requests fail closed.
+OTP_SENDERS: dict[str, str] = {}
+# Invitation sender (dotted path). Empty: invitations are seen in the app only.
+INVITE_SENDER = ""
+# Hard wall-clock limit on every provider call.
+MESSAGING_PROVIDER_TIMEOUT_SECONDS = 5
+# Fakes and the dev OTP outbox: dev and test only (notifications.E001-E004).
+MESSAGING_ALLOW_FAKE = False
+FAKE_OTP_OUTBOX_ENABLED = False
+FAKE_OTP_OUTBOX_TTL_SECONDS = 600
+# Push provider (dotted path to a zero-argument factory). None until Expo/FCM details are
+# verified.
+PUSH_PROVIDER = ""
+# SIM-swap / number-verification signals: interface only until an operator API is confirmed.
+# Escalates verification, never proof.
+OPERATOR_SIGNAL_PROVIDER = "apps.accounts.operator_signals.NoOpOperatorSignalProvider"
 
 LANGUAGE_CODE = "en"
 USE_I18N = False
@@ -108,7 +206,8 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    # Bearer session tokens: identity comes from SessionAuthenticationMiddleware.
+    "DEFAULT_AUTHENTICATION_CLASSES": ["apps.accounts.authentication.BearerSessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "UNAUTHENTICATED_USER": None,
     # One error shape for every API error (core.api_errors).
@@ -127,6 +226,9 @@ SPECTACULAR_SETTINGS = {
         "ErrorCodeEnum": "core.api_errors.ERROR_CODES",
         "ErrorReasonEnum": "core.api_errors.ERROR_REASONS",
         "StepUpFactorEnum": "core.api_errors.STEP_UP_FACTORS",
+        "RoleEnum": "apps.organizations.roles.Role",
+        "MembershipStatusEnum": "apps.organizations.models.MembershipStatus",
+        "PendingChangeStatusEnum": "apps.organizations.models.PendingChangeStatus",
     },
 }
 
@@ -138,7 +240,12 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TASK_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TIMEZONE = "UTC"
-CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {}
+CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
+    "accounts-purge-otp-records": {
+        "task": "apps.accounts.tasks.purge_otp_records",
+        "schedule": 3600.0,
+    },
+}
 CELERY_BEAT_SCHEDULE_FILENAME = env_str("CELERY_BEAT_SCHEDULE_FILENAME", "/tmp/celerybeat-schedule")  # noqa: S108
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 

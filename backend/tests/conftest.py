@@ -63,7 +63,42 @@ def as_owner():
     return lambda: _connect_as(*_owner_credentials())
 
 
-# ---------------------------------------------------------------- redis
+# ---------------------------------------------------------------- tenancy fixtures
+@pytest.fixture
+def two_chamas(db):
+    """Chamas A and B, each with probe rows written inside its own chama context."""
+    from apps.organizations.models import Chama
+    from core.tenancy import chama_context
+    from tests.rls_probe.models import ProbeRecord
+
+    a, b = Chama.objects.create(), Chama.objects.create()
+    with chama_context(a.id):
+        ProbeRecord.objects.create(chama=a, name="a-1")
+        ProbeRecord.objects.create(chama=a, name="a-2")
+    with chama_context(b.id):
+        b_row = ProbeRecord.objects.create(chama=b, name="b-secret")
+    return a, b, b_row
+
+
+@pytest.fixture
+def fake_auth(settings):
+    """Swap the placeholder authentication middleware for the test session middleware."""
+    from tests.rls_probe import auth
+
+    settings.MIDDLEWARE = [
+        auth.PATH if m == settings.TENANCY_AUTHENTICATION_MIDDLEWARE else m
+        for m in settings.MIDDLEWARE
+    ]
+    settings.TENANCY_AUTHENTICATION_MIDDLEWARE = auth.PATH
+    settings.ROOT_URLCONF = "tests.rls_probe.urls"
+    auth.SESSIONS.clear()
+    auth.USERS.clear()
+    yield auth.SESSIONS
+    auth.SESSIONS.clear()
+    auth.USERS.clear()
+
+
+# ---------------------------------------------------------------- redis and messaging fixtures
 @pytest.fixture
 def redis_db():
     """A clean test Redis database (REDIS_URL ends in /15 under test settings)."""
@@ -74,3 +109,29 @@ def redis_db():
     client.flushdb()
     yield client
     client.flushdb()
+
+
+@pytest.fixture
+def fake_senders(redis_db):
+    """Fake OTP senders with an empty outbox; BEHAVIOUR reset afterwards."""
+    from apps.notifications import fake
+
+    fake.BEHAVIOUR.clear()
+    yield fake
+    fake.BEHAVIOUR.clear()
+
+
+@pytest.fixture
+def events_spy(monkeypatch):
+    """Kinds of security events recorded by apps.accounts.sessions (rows may be invisible)."""
+    from apps.accounts import audit
+
+    kinds: list[str] = []
+    real = audit.record_security_event
+
+    def spy(kind, **kwargs):
+        kinds.append(str(kind))
+        return real(kind, **kwargs)
+
+    monkeypatch.setattr("apps.accounts.sessions.record_security_event", spy)
+    return kinds

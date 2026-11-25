@@ -49,7 +49,7 @@ def test_prod_is_hardened(monkeypatch):
     assert prod.DEBUG is False
     assert prod.SECURE_SSL_REDIRECT is True
     assert prod.SECURE_HSTS_SECONDS >= 31536000
-    # Django admin is never installed in prod.
+    # SEC-07: Django admin is never installed in prod (see test_sec_07_prod_has_no_dev_admin).
     assert "django.contrib.admin" not in prod.INSTALLED_APPS
 
 
@@ -87,6 +87,36 @@ def test_prod_refuses_to_start_without_each_key_ring(monkeypatch, ring: str):
 def test_prod_refuses_a_malformed_key_ring(monkeypatch, value: str):
     with pytest.raises(ImproperlyConfigured, match="AUDIT_HASH_KEYS"):
         _import_prod(monkeypatch, **_GOOD, AUDIT_HASH_KEYS=value)
+
+
+def test_sec_07_prod_has_no_fake_senders_or_outbox(monkeypatch):
+    prod = _import_prod(monkeypatch, **_GOOD)
+    assert prod.OTP_SENDERS == {}
+    assert prod.MESSAGING_ALLOW_FAKE is False
+    assert prod.FAKE_OTP_OUTBOX_ENABLED is False
+    assert prod.INVITE_SENDER == ""
+
+
+def test_sec_07_prod_has_no_admin(monkeypatch):
+    prod = _import_prod(monkeypatch, **_GOOD)
+    assert prod.AUTHENTICATION_BACKENDS == []
+    for app in ("django.contrib.admin", "django.contrib.sessions", "django.contrib.messages"):
+        assert app not in prod.INSTALLED_APPS
+    assert not any("sessions" in m or "csrf" in m for m in prod.MIDDLEWARE)
+
+
+def test_sec_07_outbox_is_not_routed_when_disabled(settings):
+    import config.urls
+
+    settings.FAKE_OTP_OUTBOX_ENABLED = False
+    try:
+        importlib.reload(config.urls)
+        names = {getattr(p, "name", None) for p in config.urls.urlpatterns}
+        assert "dev-otp-outbox" not in names
+    finally:
+        settings.FAKE_OTP_OUTBOX_ENABLED = True
+        importlib.reload(config.urls)
+    assert "dev-otp-outbox" in {getattr(p, "name", None) for p in config.urls.urlpatterns}
 
 
 def test_prod_refuses_to_start_without_an_explicit_proxy_count(monkeypatch):
