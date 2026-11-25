@@ -54,6 +54,8 @@ const ERROR_REASONS = [
   'repeated',
   'sequence',
   'phone_digits',
+  'duplicate_receipt',
+  'member_not_active',
 ] as const;
 
 type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never;

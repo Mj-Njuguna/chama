@@ -21,8 +21,10 @@ from apps.organizations.permissions import Action, RequiresAction, RequiresChama
 from apps.organizations.roles import OFFICIALS, Role
 from apps.organizations.selectors import (
     MembershipSummary,
+    active_member_ids,
     current_membership_id,
     current_role,
+    is_active_member,
     memberships_for_user,
 )
 from apps.organizations.stepup import role_allows as is_allowed  # refuses step-up actions
@@ -34,10 +36,12 @@ __all__ = [
     "RequiresAction",
     "RequiresChama",
     "Role",
+    "active_member_ids",
     "chama_not_available",
     "checked_identity",
     "current_membership_id",
     "current_role",
+    "is_active_member",
     "is_allowed",
     "is_valid_member_code",
     "memberships_for_user",

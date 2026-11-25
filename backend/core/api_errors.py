@@ -158,7 +158,7 @@ ERROR_CODES = (
 # Why a new PIN was refused (pin_rejected).
 PIN_REJECTIONS = ("not_six_digits", "repeated", "sequence", "phone_digits")
 # Why an action conflicts with the current state (state_conflict, 409). Each module adds its own.
-STATE_CONFLICTS: tuple[str, ...] = ()
+STATE_CONFLICTS: tuple[str, ...] = ("duplicate_receipt", "member_not_active")
 # ``reason`` sub-codes: those of invalid_phone, pin_rejected and state_conflict.
 ERROR_REASONS = (*(reason.value for reason in PhoneError), *PIN_REJECTIONS, *STATE_CONFLICTS)
 # Factors a step_up_required answer may list.

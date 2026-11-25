@@ -1,14 +1,10 @@
 import createClient, { type Client } from 'openapi-fetch';
 
-import type { components, paths } from './generated/draft-chama';
+import type { components, paths } from './generated/schema';
 
 /**
- * Typed API client over GENERATED schema types. Request and response types come only from the
- * generated file; never hand-write them.
- *
- * DRAFT: until the backend publishes these endpoints, types come from
- * `src/api/draft/chama.openapi.yaml` (`npm run gen:api:draft`). When the backend schema lands,
- * this import switches to `./generated/schema` (`npm run gen:api`) and the draft is deleted.
+ * Typed API client over GENERATED schema types (`npm run gen:api` from the backend OpenAPI
+ * schema). Request and response types come only from the generated file; never hand-write them.
  */
 export type ApiClient = Client<paths>;
 export type Schemas = components['schemas'];

@@ -6,6 +6,8 @@ from core.health import healthz, readyz
 api_v1: list[URLPattern | URLResolver] = [  # each app adds its routes here
     path("auth/", include("apps.accounts.urls")),
     path("", include("apps.organizations.urls")),
+    path("", include("apps.ledger.urls")),  # /chama/receipts
+    path("", include("apps.reports.urls")),  # /chama/home
 ]
 
 urlpatterns = [

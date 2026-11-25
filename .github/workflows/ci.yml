@@ -64,6 +64,14 @@ jobs:
       - name: Install (lockfile only)
         run: npm ci
 
+      - name: Generated API client matches the backend schema
+        run: |
+          npm run gen:api
+          git diff --exit-code -- src/api/generated || {
+            echo "::error::src/api/generated is stale. Run 'npm run gen:api' in mobile/ and commit the result."
+            exit 1
+          }
+
       - name: Typecheck
         run: npm run typecheck
 

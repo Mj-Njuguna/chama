@@ -76,3 +76,17 @@ def current_membership_id(request: object) -> uuid.UUID | None:
         .values_list("id", flat=True)
         .first()
     )
+
+
+def is_active_member(membership_id: uuid.UUID) -> bool:
+    """Whether ``membership_id`` is an active member of the current chama (RLS-scoped)."""
+    return bool(
+        Membership.objects.filter(id=membership_id, status=MembershipStatus.ACTIVE).exists()
+    )
+
+
+def active_member_ids() -> list[uuid.UUID]:
+    """Every active membership of the current chama (RLS-scoped)."""
+    return list(
+        Membership.objects.filter(status=MembershipStatus.ACTIVE).values_list("id", flat=True)
+    )

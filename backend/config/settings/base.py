@@ -229,6 +229,8 @@ SPECTACULAR_SETTINGS = {
         "RoleEnum": "apps.organizations.roles.Role",
         "MembershipStatusEnum": "apps.organizations.models.MembershipStatus",
         "PendingChangeStatusEnum": "apps.organizations.models.PendingChangeStatus",
+        "ReceiptChannelEnum": "apps.ledger.models.ReceiptChannel",
+        "CycleStatusEnum": "apps.reports.views.CYCLE_STATUSES",
     },
 }
 
