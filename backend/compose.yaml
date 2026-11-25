@@ -1,0 +1,89 @@
+# Local development stack. Run through `just` (see justfile), not directly.
+# Every value below is a LOCAL-ONLY default; real secrets come from the environment (invariant 8).
+# Override any of them in backend/.env (git-ignored), copied from .env.example.
+
+name: chama
+
+x-backend: &backend
+  build:
+    context: .
+    target: dev
+  image: chama-backend:dev
+  env_file:
+    - path: .env
+      required: false
+  environment: &backend-env
+    DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-config.settings.dev}
+    POSTGRES_HOST: db
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: ${POSTGRES_DB:-chama}
+    #: the app, workers and tests connect as app_rw (subject to RLS, owns nothing).
+    POSTGRES_USER: app_rw
+    POSTGRES_PASSWORD: ${APP_RW_PASSWORD:-app-rw-local-only}
+    # Used only by `just migrate` (DB_CONNECT_AS=owner) and by the test runner to build the
+    # test database. In production these live only in the migration job's environment.
+    POSTGRES_OWNER_USER: app_owner
+    POSTGRES_OWNER_PASSWORD: ${APP_OWNER_PASSWORD:-app-owner-local-only}
+    REDIS_URL: redis://redis:6379/0
+    LOG_FORMAT: ${LOG_FORMAT:-json}
+  volumes:
+    - .:/app
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  app:
+    <<: *backend
+    ports:
+      - "127.0.0.1:${APP_PORT:-8001}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+  worker:
+    <<: *backend
+    command: ["celery", "-A", "config", "worker", "--loglevel=INFO", "--concurrency=2"]
+
+  beat:
+    <<: *backend
+    command: ["celery", "-A", "config", "beat", "--loglevel=INFO"]
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-chama}
+      # Bootstrap superuser: used only by db/apply-roles.sh, never by the app.
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:-chama}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:-chama-local-only}
+      # Passwords that db/roles.sql sets on app_owner and app_rw.
+      APP_OWNER_PASSWORD: ${APP_OWNER_PASSWORD:-app-owner-local-only}
+      APP_RW_PASSWORD: ${APP_RW_PASSWORD:-app-rw-local-only}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db:/srv/db:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

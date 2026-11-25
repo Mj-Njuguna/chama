@@ -1,0 +1,81 @@
+# Task runner. Every recipe wraps `docker compose`, so the same commands work on the
+# Windows host and on Linux CI. Run from backend/.
+
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-Command"]
+
+compose := "docker compose"
+run := compose + " run --rm --no-deps app"
+run_with_deps := compose + " run --rm app"
+
+# List recipes
+default:
+    @just --list
+
+# Build images, start app/worker/beat/postgres/redis, apply migrations
+up:
+    {{compose}} build
+    {{compose}} up -d --wait db redis
+    just db-roles
+    just migrate
+    {{compose}} up -d --wait
+
+# Create or refresh the app_owner / app_rw database roles (idempotent)
+db-roles:
+    {{compose}} up -d --wait db
+    {{compose}} exec -T db sh /srv/db/apply-roles.sh
+
+# Apply migrations as app_owner (the app itself always connects as app_rw)
+migrate:
+    {{compose}} run --rm -e DB_CONNECT_AS=owner app python manage.py migrate --noinput
+
+# Stop the stack (data volume is kept)
+down:
+    {{compose}} down
+
+# Stop the stack AND delete the local database volume
+nuke:
+    {{compose}} down -v
+
+# Follow logs, e.g. `just logs app`
+logs *services:
+    {{compose}} logs -f {{services}}
+
+# Run pytest with coverage, e.g. `just test tests/test_health.py -x`
+test *args: db-roles
+    {{run_with_deps}} pytest {{args}}
+
+# ruff (lint + format check) and mypy
+lint:
+    {{run}} ruff check .
+    {{run}} ruff format --check .
+    {{run}} mypy .
+
+# Apply ruff fixes and formatting
+fmt:
+    {{run}} ruff check --fix .
+    {{run}} ruff format .
+
+# Export the OpenAPI schema to openapi/schema.yaml (commit the result)
+openapi:
+    {{run}} python manage.py spectacular --file openapi/schema.yaml --validate --fail-on-warn
+
+# Run any manage.py command, e.g. `just manage makemigrations accounts`
+# Demo data for development and the mobile app (development settings only).
+seed:
+    {{run_with_deps}} python manage.py seed
+
+manage *args:
+    {{run_with_deps}} python manage.py {{args}}
+
+# Refresh uv.lock after editing pyproject.toml dependencies (rebuild with `just up` afterwards)
+lock:
+    {{run}} uv lock
+
+# Scan committed git history for secrets (same check as CI). Uncommitted files are not scanned;
+# the pre-commit gitleaks hook covers staged changes.
+secrets:
+    docker run --rm -v "{{justfile_directory()}}/..:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2 git /repo --redact --verbose
+
+# Django deployment checks against prod settings (throwaway values, nothing is served)
+deploy-check:
+    {{compose}} run --rm --no-deps -e DJANGO_SETTINGS_MODULE=config.settings.prod -e DJANGO_SECRET_KEY=deploy-check-only-0123456789-abcdefghijklmnopqrstuvwxyz -e DJANGO_ALLOWED_HOSTS=example.invalid -e AUDIT_HASH_KEYS=ci1:ZGVwbG95LWNoZWNrLW9ubHktbm90LWEtcmVhbC1rZXktMDAwMDAw -e OTP_PEPPER_KEYS=ci1:ZGVwbG95LWNoZWNrLW9ubHktbm90LWEtcmVhbC1rZXktMDAwMDAx -e AUTH_TOKEN_KEYS=ci1:ZGVwbG95LWNoZWNrLW9ubHktbm90LWEtcmVhbC1rZXktMDAwMDAy -e PIN_PEPPER_KEYS=ci1:ZGVwbG95LWNoZWNrLW9ubHktbm90LWEtcmVhbC1rZXktMDAwMDAz -e FIELD_ENCRYPTION_KEYS=ci1:ZGVwbG95LWNoZWNrLW9ubHktbm90LWEtcmVhbC1rZXktMDAwMDA0 -e TRUSTED_PROXY_COUNT=1 app python manage.py check --deploy --fail-level WARNING

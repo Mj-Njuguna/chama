@@ -1,0 +1,7 @@
+android/
+dist/
+.expo/
+node_modules/
+package-lock.json
+src/api/generated/
+*.md

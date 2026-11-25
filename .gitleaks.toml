@@ -1,0 +1,8 @@
+# gitleaks configuration: the default rules, plus this project's session tokens.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "chama-session-token"
+description = "Chama access or refresh token"
+regex = '''chm_(at|rt)_[A-Za-z0-9_-]{43}'''
