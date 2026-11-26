@@ -8,6 +8,9 @@ export type Role = Schemas['RoleEnum'];
 export type CreatedChama = Schemas['CreatedChama'];
 export type SwitchedChama = Schemas['SwitchedChama'];
 export type ChamaHome = Schemas['ChamaHome'];
+export type Member = Schemas['Member'];
+export type ReceiptIn = Schemas['ReceiptInRequest'];
+export type ReceiptOut = Schemas['ReceiptOut'];
 
 /** Chama calls of the signed-in user; each takes the access token from the TokenManager. */
 export type ChamaApi = {
@@ -15,6 +18,8 @@ export type ChamaApi = {
   readonly create: (name: string) => AuthedCall<CreatedChama>;
   readonly switchTo: (chamaId: string) => AuthedCall<SwitchedChama>;
   readonly home: AuthedCall<ChamaHome>;
+  readonly members: AuthedCall<{ members: Member[] }>;
+  readonly createReceipt: (body: ReceiptIn) => AuthedCall<ReceiptOut>;
 };
 
 export function createChamaApi(client: ApiClient): ChamaApi {
@@ -27,6 +32,9 @@ export function createChamaApi(client: ApiClient): ChamaApi {
         client.POST('/api/v1/auth/switch-chama', { headers: bearer(token), body: { chama_id: chamaId } }),
       ),
     home: (token) => runCall(() => client.GET('/api/v1/chama/home', { headers: bearer(token) })),
+    members: (token) => runCall(() => client.GET('/api/v1/chama/members', { headers: bearer(token) })),
+    createReceipt: (body) => (token) =>
+      runCall(() => client.POST('/api/v1/chama/receipts', { headers: bearer(token), body })),
   };
 }
 

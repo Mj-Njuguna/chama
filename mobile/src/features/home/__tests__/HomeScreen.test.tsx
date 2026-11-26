@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { AuthedCall } from '../../../auth/tokenManager';
 import type { ChamaApi, ChamaHome } from '../../chamas/chamaApi';
 import { useChamaUi } from '../../chamas/store';
+import type { M2Api } from '../../m2/m2Api';
 import { HomeScreen } from '../HomeScreen';
 
 function apiReturning(home: ChamaHome | 'offline'): ChamaApi {
@@ -14,8 +15,13 @@ function apiReturning(home: ChamaHome | 'offline'): ChamaApi {
     me: async () => ({ ok: false, status: 0, offline: true }),
     create: () => async () => ({ ok: false, status: 0, offline: true }),
     switchTo: () => async () => ({ ok: false, status: 0, offline: true }),
+    members: async () => ({ ok: false, status: 0, offline: true }),
+    createReceipt: () => async () => ({ ok: false, status: 0, offline: true }),
   };
 }
+
+const offline = async () => ({ ok: false as const, status: 0 as const, offline: true as const });
+const m2 = { collection: offline } as unknown as M2Api;
 
 const callAuthed = <T,>(call: AuthedCall<T>) => call('chm_at_x');
 
@@ -26,7 +32,7 @@ async function renderHome(api: ChamaApi) {
   client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   await render(
     <QueryClientProvider client={client}>
-      <HomeScreen api={api} callAuthed={callAuthed} chamaId="chama-1" />
+      <HomeScreen api={api} m2={m2} callAuthed={callAuthed} chamaId="chama-1" onPay={() => undefined} />
     </QueryClientProvider>,
   );
 }

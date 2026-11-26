@@ -16,7 +16,7 @@ import { t } from '../src/i18n';
 /** Renders exactly one screen per auth state; signed-in content only in `signed_in`. */
 export default function Index() {
   const { state, session, completeLogin, unlock, logout, pinSet } = useSession();
-  const { loginApi, devReadCode, chamaApi, stepUpApi } = useAppServices();
+  const { loginApi, devReadCode, chamaApi, m2Api, stepUpApi } = useAppServices();
   const runWithStepUp = useStepUp();
   const callAuthed = useCallback(<T,>(call: AuthedCall<T>) => session.tokens.callAuthed(call), [session]);
 
@@ -33,7 +33,15 @@ export default function Index() {
       if (state.pin === 'missing') {
         return <SetPinScreen setPin={stepUpApi.setPin} runWithStepUp={runWithStepUp} onDone={pinSet} />;
       }
-      return <SignedInApp api={chamaApi} callAuthed={callAuthed} onLogout={logout} />;
+      return (
+        <SignedInApp
+          api={chamaApi}
+          m2={m2Api}
+          callAuthed={callAuthed}
+          runWithStepUp={runWithStepUp}
+          onLogout={logout}
+        />
+      );
     case 'signed_out': {
       const noticeKey = state.reason === null ? null : signedOutMessageKey(state.reason);
       return (

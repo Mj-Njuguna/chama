@@ -1,4 +1,4 @@
-import { formatKes, formatMoney, InvalidMoneyAmount } from '../money';
+import { formatKes, formatMoney, InvalidMoneyAmount, minorToInput, parseKesInput } from '../money';
 
 describe('formatMoney', () => {
   it.each([
@@ -36,5 +36,29 @@ describe('formatKes (screens: whole shillings without cents)', () => {
 
   it('refuses non-integer amounts like formatMoney', () => {
     expect(() => formatKes(12.5)).toThrow(InvalidMoneyAmount);
+  });
+});
+
+describe('parseKesInput / minorToInput (typed amounts, no floating point)', () => {
+  it.each([
+    ['1500', 150_000],
+    ['1,500', 150_000],
+    [' 1500.5 ', 150_050],
+    ['1500.50', 150_050],
+    ['KES 20', 2_000],
+    ['0.01', 1],
+  ])('%s -> %d', (text, minor) => {
+    expect(parseKesInput(text)).toBe(minor);
+  });
+
+  it.each(['', '0', '0.00', '-5', '1.234', 'abc', '1e3', '12.3.4'])('refuses %p', (text) => {
+    expect(parseKesInput(text)).toBeNull();
+  });
+
+  it('round-trips server amounts into the input', () => {
+    expect(minorToInput(150_000)).toBe('1500');
+    expect(minorToInput(150_050)).toBe('1500.50');
+    expect(minorToInput(0)).toBe('');
+    expect(parseKesInput(minorToInput(123_407))).toBe(123_407);
   });
 });

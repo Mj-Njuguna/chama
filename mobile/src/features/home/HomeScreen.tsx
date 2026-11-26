@@ -8,6 +8,7 @@ import { Badge, Card, ProgressBar, Row, SectionLabel, StatCard } from '../app/ki
 import { c, CONTENT_BOTTOM } from '../app/theme';
 import { type ChamaApi, type ChamaHome, isOfficial } from '../chamas/chamaApi';
 import { useChamaUi } from '../chamas/store';
+import type { M2Api } from '../m2/m2Api';
 import { NoData, StaleNotice } from '../shell/QueryStates';
 import { type CallAuthed, useAuthedQuery } from '../shell/useAuthedQuery';
 
@@ -26,12 +27,17 @@ function count(value: number | null): string {
  */
 export function HomeScreen({
   api,
+  m2,
   callAuthed,
   chamaId,
+  onPay,
 }: {
   api: ChamaApi;
+  m2: M2Api;
   callAuthed: CallAuthed;
   chamaId: string;
+  /** Opens the M-Pesa payment modal, prefilled with the server's "still to pay" figure. */
+  onPay: (prefillMinor: number | null) => void;
 }) {
   const query = useAuthedQuery(['chama-home', chamaId], api.home, callAuthed);
   const viewMode = useChamaUi((s) => s.viewMode);
@@ -68,15 +74,21 @@ export function HomeScreen({
         />
       ) : null}
       {showOfficial && home.official !== null ? (
-        <OfficialHome data={home.official} />
+        <OfficialHome data={home.official} m2={m2} callAuthed={callAuthed} chamaId={chamaId} />
       ) : (
-        <MemberHome data={home.member} />
+        <MemberHome data={home.member} onPay={onPay} />
       )}
     </ScrollView>
   );
 }
 
-function MemberHome({ data }: { data: ChamaHome['member'] }) {
+function MemberHome({
+  data,
+  onPay,
+}: {
+  data: ChamaHome['member'];
+  onPay: (prefillMinor: number | null) => void;
+}) {
   if (data === null) {
     return <Text style={styles.empty}>{t('home.member.empty')}</Text>;
   }
@@ -101,13 +113,22 @@ function MemberHome({ data }: { data: ChamaHome['member'] }) {
         <SectionLabel>{t('home.member.loan')}</SectionLabel>
         <Row label={t('home.member.loanBalance')} value={money(data.active_loan_balance_minor)} />
       </Card>
-      <Button label={t('home.member.pay')} disabled onPress={() => undefined} />
-      <Text style={styles.note}>{t('home.member.payComingSoon')}</Text>
+      <Button label={t('home.member.pay')} onPress={() => onPay(data.cycle_balance_minor)} />
     </View>
   );
 }
 
-function OfficialHome({ data }: { data: NonNullable<ChamaHome['official']> }) {
+function OfficialHome({
+  data,
+  m2,
+  callAuthed,
+  chamaId,
+}: {
+  data: NonNullable<ChamaHome['official']>;
+  m2: M2Api;
+  callAuthed: CallAuthed;
+  chamaId: string;
+}) {
   return (
     <View style={styles.stack} testID="official-home">
       <StatCard
@@ -149,7 +170,27 @@ function OfficialHome({ data }: { data: NonNullable<ChamaHome['official']> }) {
           tone={data.overdue_count !== null && data.overdue_count > 0 ? 'alert' : 'normal'}
         />
       </Card>
+      <OverdueList m2={m2} callAuthed={callAuthed} chamaId={chamaId} />
     </View>
+  );
+}
+
+/** Members the server marks overdue in the current cycle (from GET /chama/collection). */
+function OverdueList({ m2, callAuthed, chamaId }: { m2: M2Api; callAuthed: CallAuthed; chamaId: string }) {
+  const query = useAuthedQuery(['collection', chamaId], m2.collection, callAuthed);
+  if (query.data === undefined) return null;
+  const overdue = query.data.members.filter((m) => m.status === 'overdue');
+  return (
+    <Card testID="overdue-list">
+      <SectionLabel>{t('home.official.overdueList')}</SectionLabel>
+      {overdue.length === 0 ? (
+        <Text style={styles.note}>{t('home.official.noOverdue')}</Text>
+      ) : (
+        overdue.map((m) => (
+          <Row key={m.member_id} label={m.name} value={formatKes(m.balance_minor)} tone="alert" />
+        ))
+      )}
+    </Card>
   );
 }
 
