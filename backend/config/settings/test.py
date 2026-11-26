@@ -19,9 +19,19 @@ OTP_SENDERS = {
 }
 INVITE_SENDER = "apps.notifications.invites.FakeInviteSender"
 PUSH_PROVIDER = "apps.notifications.fake.FakePushProvider"
+CONTRIBUTIONS_JOB_JITTER_SECONDS = 0
+WHATSAPP_APP_SECRET = "test-app-secret"  # noqa: S105
+WHATSAPP_VERIFY_TOKEN = "test-verify-token"  # noqa: S105
+MESSAGE_SENDERS = {
+    "whatsapp": "apps.notifications.fake.FakeWhatsAppMessenger",
+    "sms": "apps.notifications.fake.FakeSmsMessenger",
+}
 
 # Test-only app with one chama-scoped table, to prove RLS independently of real chama tables.
 INSTALLED_APPS = [*INSTALLED_APPS, "tests.rls_probe"]
 # Cheap Argon2 in tests (the cost is a setting; production keeps ~64 MiB, 3 passes).
 PIN_ARGON2_TIME_COST = 1
 PIN_ARGON2_MEMORY_KIB = 8 * 1024
+
+# Fake M-Pesa gateway (no network). Never in production (payments.E001).
+MPESA_GATEWAY = "apps.payments.fake.FakeMpesaGateway"

@@ -31,8 +31,10 @@ class Action(StrEnum):
     CHANGE_ROLES = "change_roles"
     EDIT_CONSTITUTION = "edit_constitution"
     RECORD_RECEIPT = "record_receipt"  # manual offline receipt (bank slip)
+    WAIVE_FINE = "waive_fine"  # request or approve a fine waiver (two different officials)
     EXPORT_DATA = "export_data"
     PAYMENT_LINKING = "payment_linking"  # the chama's paybill/till and Daraja credentials
+    ALLOCATE_PAYMENT = "allocate_payment"  # assign an unallocated M-Pesa payment to a member
     # No step-up: stopping a change must always be easy.
     REVIEW_CHAMA_CHANGES = "review_chama_changes"  # list and cancel pending changes
     FREEZE_CHAMA = "freeze_chama"  # "this wasn't me"
@@ -44,8 +46,10 @@ WRITE_ACTIONS = frozenset(
         Action.CHANGE_ROLES,
         Action.EDIT_CONSTITUTION,
         Action.RECORD_RECEIPT,
+        Action.WAIVE_FINE,
         Action.EXPORT_DATA,
         Action.PAYMENT_LINKING,
+        Action.ALLOCATE_PAYMENT,
         Action.REVIEW_CHAMA_CHANGES,
         Action.FREEZE_CHAMA,
     }
@@ -65,8 +69,10 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.CHANGE_ROLES: ALLOW,
         Action.EDIT_CONSTITUTION: ALLOW,
         Action.RECORD_RECEIPT: ALLOW,
+        Action.WAIVE_FINE: ALLOW,
         Action.EXPORT_DATA: ALLOW,
         Action.PAYMENT_LINKING: ALLOW,
+        Action.ALLOCATE_PAYMENT: ALLOW,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
         Action.FREEZE_CHAMA: ALLOW,
     },
@@ -80,8 +86,10 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.CHANGE_ROLES: DENY,
         Action.EDIT_CONSTITUTION: ALLOW,
         Action.RECORD_RECEIPT: ALLOW,
+        Action.WAIVE_FINE: ALLOW,
         Action.EXPORT_DATA: ALLOW,
         Action.PAYMENT_LINKING: ALLOW,
+        Action.ALLOCATE_PAYMENT: ALLOW,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
         Action.FREEZE_CHAMA: ALLOW,
     },
@@ -95,8 +103,10 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.CHANGE_ROLES: DENY,
         Action.EDIT_CONSTITUTION: ALLOW,
         Action.RECORD_RECEIPT: ALLOW,
+        Action.WAIVE_FINE: ALLOW,
         Action.EXPORT_DATA: DENY,
         Action.PAYMENT_LINKING: DENY,
+        Action.ALLOCATE_PAYMENT: ALLOW,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
         Action.FREEZE_CHAMA: ALLOW,
     },
@@ -110,8 +120,10 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.CHANGE_ROLES: DENY,
         Action.EDIT_CONSTITUTION: DENY,
         Action.RECORD_RECEIPT: DENY,
+        Action.WAIVE_FINE: DENY,
         Action.EXPORT_DATA: DENY,
         Action.PAYMENT_LINKING: DENY,
+        Action.ALLOCATE_PAYMENT: DENY,
         Action.REVIEW_CHAMA_CHANGES: DENY,
         Action.FREEZE_CHAMA: DENY,
     },

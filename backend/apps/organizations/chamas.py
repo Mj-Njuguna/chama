@@ -207,6 +207,9 @@ def create_chama(identity: SessionIdentity, name: str) -> CreatedChama:
                 role=Role.CHAIR,
                 member_code=code,
                 joined_at=now,
+                # Creating the chama accepts its terms, like accepting an invitation does.
+                terms_version=settings.INVITE_TERMS_VERSION,
+                terms_accepted_at=now,
             )
             record_security_event(
                 SecurityEventKind.CHAMA_CREATED,

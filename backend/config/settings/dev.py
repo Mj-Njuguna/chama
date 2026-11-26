@@ -17,3 +17,11 @@ OTP_SENDERS = {
 }
 INVITE_SENDER = "apps.notifications.invites.FakeInviteSender"
 PUSH_PROVIDER = "apps.notifications.fake.FakePushProvider"
+
+# Fake M-Pesa gateway (no network). Never in production (payments.E001).
+MPESA_GATEWAY = "apps.payments.fake.FakeMpesaGateway"
+FAKE_MPESA_AUTOCOMPLETE_SECONDS = 5
+MESSAGE_SENDERS = {
+    "whatsapp": "apps.notifications.fake.FakeWhatsAppMessenger",
+    "sms": "apps.notifications.fake.FakeSmsMessenger",
+}

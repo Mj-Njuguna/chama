@@ -1,6 +1,8 @@
 import { createApiClient } from '../api/client';
+import { createM2Client } from '../api/m2Client';
 import { type ChamaApi, createChamaApi } from '../features/chamas/chamaApi';
 import { createLoginApi, type LoginApi } from '../features/login/loginApi';
+import { createM2Api, type M2Api } from '../features/m2/m2Api';
 import { createDeviceStorage, type DeviceStorage } from './createVault';
 import type { MonotonicClock } from './monotonicClock';
 import { newInstallationId } from './newInstallationId';
@@ -17,6 +19,8 @@ export type AppServices = {
   readonly sessionApi: SessionApi;
   readonly stepUpApi: StepUpApi;
   readonly chamaApi: ChamaApi;
+  /** Phase-2 calls (payments, cycles, ledger views, waivers, feed). */
+  readonly m2Api: M2Api;
   /** Idle re-lock clock (monotonic). */
   readonly clock: MonotonicClock;
   /** Development builds only (fake OTP outbox). */
@@ -48,6 +52,7 @@ export function createAppServices(
     sessionApi,
     stepUpApi: createStepUpApi(client),
     chamaApi: createChamaApi(client),
+    m2Api: createM2Api(createM2Client(apiBaseUrl)),
     clock,
   };
   if (__DEV__) {

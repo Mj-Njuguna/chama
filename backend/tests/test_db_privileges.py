@@ -27,6 +27,14 @@ READ_ONLY_TABLES = {
     "ledger_ledgertransaction": {"SELECT", "INSERT"},
     "ledger_ledgerentry": {"SELECT", "INSERT"},
     "ledger_receipt": {"SELECT", "INSERT"},
+    # Payments are append-only; callback routes are written once.
+    "payments_payment": {"SELECT", "INSERT"},
+    "payments_paymentallocation": {"SELECT", "INSERT"},
+    "payments_callbackroute": {"SELECT", "INSERT"},
+    # Status rows are updated, never deleted.
+    "payments_paymentlinking": {"SELECT", "INSERT", "UPDATE"},
+    "payments_stkrequest": {"SELECT", "INSERT", "UPDATE"},
+    "payments_callbackevent": {"SELECT", "INSERT", "UPDATE"},
     # A PIN is replaced by updating its row, never deleted.
     "accounts_steppin": {"SELECT", "INSERT", "UPDATE"},
     # Chamas, memberships, constitutions and cooling-off changes are closed or revoked, never
@@ -35,6 +43,17 @@ READ_ONLY_TABLES = {
     "organizations_membership": {"SELECT", "INSERT", "UPDATE"},
     "organizations_constitution": {"SELECT", "INSERT", "UPDATE"},
     "organizations_pendingchange": {"SELECT", "INSERT", "UPDATE"},
+    # Allocations and obligation payments are append-only; cycles, obligations (running paid
+    # totals) and waivers (approval) are updated, never deleted.
+    "contributions_allocation": {"SELECT", "INSERT"},
+    "contributions_obligationpayment": {"SELECT", "INSERT"},
+    "contributions_cycle": {"SELECT", "INSERT", "UPDATE"},
+    "contributions_obligation": {"SELECT", "INSERT", "UPDATE"},
+    "contributions_finewaiver": {"SELECT", "INSERT", "UPDATE"},
+    # The feed and provider refs are append-only; messages record delivery, never deleted.
+    "notifications_feedevent": {"SELECT", "INSERT"},
+    "notifications_providermessageref": {"SELECT", "INSERT"},
+    "notifications_message": {"SELECT", "INSERT", "UPDATE"},
 }
 FORBIDDEN_TABLE_PRIVILEGES = ("TRUNCATE", "REFERENCES", "TRIGGER")
 
@@ -188,7 +207,10 @@ def test_identity_tables_have_exactly_row_privileges(table: str):
 
 
 # Column-level UPDATE grants. Every other column of these tables is fixed once written.
-COLUMN_UPDATES: dict[str, set[str]] = {}
+COLUMN_UPDATES: dict[str, set[str]] = {
+    # Key rotation re-encrypts the payer's name; the payment itself never changes.
+    "payments_payment": {"payer_name"},
+}
 
 
 def test_app_rw_has_exactly_the_column_update_grants():

@@ -10,6 +10,8 @@ action                 factors       notes
 =====================  ============  ==========================================
 view_*                 none          an unlocked session (local unlock) only
 record_receipt         pin           PIN fresh for 15 min
+allocate_payment       pin
+waive_fine             pin           requester and approver must differ
 edit_constitution      pin
 manage_members         otp           OTP fresh for 5 min
 change_roles           otp
@@ -56,6 +58,8 @@ from core.api_errors import ApiError, chama_frozen, cooling_off
 
 STEP_UP: dict[Action, tuple[str, ...]] = {
     Action.RECORD_RECEIPT: ("pin",),
+    Action.ALLOCATE_PAYMENT: ("pin",),
+    Action.WAIVE_FINE: ("pin",),
     Action.EDIT_CONSTITUTION: ("pin",),
     Action.MANAGE_MEMBERS: ("otp",),
     Action.CHANGE_ROLES: ("otp",),

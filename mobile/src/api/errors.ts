@@ -56,6 +56,13 @@ const ERROR_REASONS = [
   'phone_digits',
   'duplicate_receipt',
   'member_not_active',
+  'payments_not_linked',
+  'payment_already_allocated',
+  'linking_changed',
+  'fine_not_open',
+  'waiver_pending',
+  'waiver_decided',
+  'same_official',
 ] as const;
 
 type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never;

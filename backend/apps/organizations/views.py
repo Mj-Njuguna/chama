@@ -36,7 +36,12 @@ from apps.organizations.models import (
 from apps.organizations.pending import cancel_change, freeze_chama, open_changes
 from apps.organizations.permissions import Action, RequiresAction, RequiresChama
 from apps.organizations.roles import Role
-from apps.organizations.selectors import current_role
+from apps.organizations.selectors import (
+    current_membership_id,
+    current_role,
+    scheduled_stk_opt_in,
+    set_scheduled_stk_opt_in,
+)
 from core.api_errors import ErrorSerializer
 
 _UNAUTHORIZED = OpenApiResponse(
@@ -541,6 +546,49 @@ class AcceptedSerializer(serializers.Serializer[Any]):
 _NO_INVITATION = OpenApiResponse(
     ErrorSerializer, description="chama_not_available (no open invitation)"
 )
+
+
+class MembershipPreferencesSerializer(serializers.Serializer[Any]):
+    scheduled_stk_opt_in = serializers.BooleanField(
+        help_text="Receive the M-Pesa prompt on contribution due dates."
+    )
+
+
+class MyMembershipView(APIView):
+    """The caller's own preferences in the active chama."""
+
+    def get_permissions(self) -> list[Any]:
+        return [RequiresChama()]
+
+    @extend_schema(
+        operation_id="chama_membership",
+        responses={200: MembershipPreferencesSerializer, 401: _UNAUTHORIZED, 404: _NO_CHAMA},
+    )
+    def get(self, request: Request) -> Response:
+        member = current_membership_id(request)
+        if member is None:
+            raise NotAuthenticated()
+        value = scheduled_stk_opt_in(member)
+        return Response(MembershipPreferencesSerializer({"scheduled_stk_opt_in": value}).data)
+
+    @extend_schema(
+        operation_id="chama_membership_update",
+        request=MembershipPreferencesSerializer,
+        responses={
+            200: MembershipPreferencesSerializer,
+            400: _INVALID,
+            401: _UNAUTHORIZED,
+            404: _NO_CHAMA,
+        },
+    )
+    def patch(self, request: Request) -> Response:
+        body = MembershipPreferencesSerializer(data=request.data)
+        body.is_valid(raise_exception=True)
+        member = current_membership_id(request)
+        if member is None:
+            raise NotAuthenticated()
+        value = set_scheduled_stk_opt_in(member, body.validated_data["scheduled_stk_opt_in"])
+        return Response(MembershipPreferencesSerializer({"scheduled_stk_opt_in": value}).data)
 
 
 class InvitationAcceptView(APIView):

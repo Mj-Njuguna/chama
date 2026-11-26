@@ -6,3 +6,8 @@ useDefault = true
 id = "chama-session-token"
 description = "Chama access or refresh token"
 regex = '''chm_(at|rt)_[A-Za-z0-9_-]{43}'''
+
+# Test placeholders that look like credentials (tests/test_payments.py), never real values.
+[allowlist]
+description = "Test placeholder credentials"
+regexes = ['''^(key|secret|pass)-SECRET-\d$''']

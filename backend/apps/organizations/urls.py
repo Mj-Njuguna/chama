@@ -15,6 +15,7 @@ from apps.organizations.views import (
     MembersView,
     MemberView,
     MeView,
+    MyMembershipView,
     RosterImportView,
     SwitchChamaView,
 )
@@ -25,6 +26,7 @@ urlpatterns = [
     path("chamas", ChamasView.as_view(), name="chamas"),
     path("chama/constitution", ConstitutionView.as_view(), name="chama-constitution"),
     path("chama/members", MembersView.as_view(), name="chama-members"),
+    path("chama/membership", MyMembershipView.as_view(), name="chama-membership"),
     path("chama/members/import", RosterImportView.as_view(), name="chama-members-import"),
     path("chama/members/<uuid:membership_id>", MemberView.as_view(), name="chama-member"),
     path("chama/invitations", InvitationsView.as_view(), name="chama-invitations"),

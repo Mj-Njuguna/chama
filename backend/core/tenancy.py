@@ -136,8 +136,19 @@ RLS_EXEMPT_TABLES: dict[str, str] = {
         "Escalating lockout per phone number, checked before login for every number alike. "
         "No chama data. Read and written only by apps.accounts.otp."
     ),
+    "payments_callbackroute": (
+        "Maps the SHA-256 hash of a chama's provider callback token to the chama. A provider "
+        "callback carries no session, so the chama is found here before any chama context "
+        "exists. Hashes and chama IDs only; insert-only. Read and written only by "
+        "apps.payments.linking."
+    ),
     "auth_group_permissions": (
         "Installed with django.contrib.auth. Unused (no PermissionsMixin); never holds data."
+    ),
+    "notifications_providermessageref": (
+        "Maps a provider message id (WhatsApp wamid) to its chama and message. Provider status "
+        "webhooks arrive with no chama context, so the lookup must happen before one exists. "
+        "IDs only, no content. Read and written only by apps.notifications."
     ),
 }
 
