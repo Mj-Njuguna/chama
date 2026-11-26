@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { ApiError } from '../../api/errors';
+import type { RunWithStepUp } from '../../auth/StepUpProvider';
 import { LinkButton } from '../../components/ui';
 import { type MessageKey, t } from '../../i18n';
 import { c } from '../app/theme';
@@ -11,7 +12,12 @@ import type { ChamaApi } from '../chamas/chamaApi';
 import { ChamaSwitcher } from '../chamas/ChamaSwitcher';
 import { CreateChamaScreen } from '../chamas/CreateChamaScreen';
 import { useChamaUi } from '../chamas/store';
+import { ContributionsTab } from '../contributions/ContributionsTab';
+import { GovernanceTab } from '../governance/GovernanceTab';
 import { HomeScreen } from '../home/HomeScreen';
+import type { Deps } from '../m2/deps';
+import type { M2Api } from '../m2/m2Api';
+import { PayModal } from '../payments/PayModal';
 import { NoData, StaleNotice } from './QueryStates';
 import { TabPlaceholder } from './TabPlaceholder';
 import { type CallAuthed, useAuthedQuery } from './useAuthedQuery';
@@ -45,11 +51,15 @@ function writeError(
  */
 export function SignedInApp({
   api,
+  m2,
   callAuthed,
+  runWithStepUp,
   onLogout,
 }: {
   api: ChamaApi;
+  m2: M2Api;
   callAuthed: CallAuthed;
+  runWithStepUp: RunWithStepUp;
   onLogout: (scope: 'this_device' | 'everywhere') => Promise<void>;
 }) {
   const queryClient = useQueryClient();
@@ -58,6 +68,8 @@ export function SignedInApp({
   const setActiveChama = useChamaUi((s) => s.setActiveChama);
   const [tab, setTab] = useState<Tab>('home');
   const [overlay, setOverlay] = useState<Overlay>('none');
+  // Prefill for the M-Pesa modal; `undefined` means the modal is closed.
+  const [payPrefill, setPayPrefill] = useState<number | null | undefined>(undefined);
 
   const serverActive = me.data?.active_chama_id ?? null;
   useEffect(() => {
@@ -115,6 +127,16 @@ export function SignedInApp({
     );
   }
 
+  const deps: Deps = {
+    chamaApi: api,
+    m2,
+    callAuthed,
+    runWithStepUp,
+    chamaId: current.chama_id,
+    role: current.role,
+    myUserId: me.data.user.id,
+  };
+
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']} testID="signed-in">
       <View style={styles.header}>
@@ -135,10 +157,26 @@ export function SignedInApp({
       <StaleNotice error={me.error} />
       <View style={styles.body}>
         {tab === 'home' ? (
-          <HomeScreen api={api} callAuthed={callAuthed} chamaId={current.chama_id} />
-        ) : (
-          <TabPlaceholder tab={tab} role={current.role} />
-        )}
+          <HomeScreen
+            api={api}
+            m2={m2}
+            callAuthed={callAuthed}
+            chamaId={current.chama_id}
+            onPay={(prefill) => setPayPrefill(prefill)}
+          />
+        ) : null}
+        {tab === 'ledger' ? <ContributionsTab key={current.chama_id} deps={deps} /> : null}
+        {tab === 'governance' ? <GovernanceTab key={current.chama_id} deps={deps} /> : null}
+        {tab === 'loans' ? <TabPlaceholder tab={tab} role={current.role} /> : null}
+        {payPrefill !== undefined ? (
+          <PayModal
+            visible
+            m2={m2}
+            callAuthed={callAuthed}
+            prefillMinor={payPrefill ?? null}
+            onClose={() => setPayPrefill(undefined)}
+          />
+        ) : null}
       </View>
       <SafeAreaView edges={['bottom']} style={styles.tabBar}>
         <View style={styles.tabRow} accessibilityRole="tablist">

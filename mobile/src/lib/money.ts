@@ -35,3 +35,26 @@ export function formatKes(minor: number): string {
   const full = formatMoney(minor);
   return full.endsWith('.00') ? full.slice(0, -3) : full;
 }
+
+/**
+ * Parses what a person typed as an amount in shillings ("1500", "1,500", "1500.5", "1500.50")
+ * into integer minor units, using string operations only (no floating point). Returns null for
+ * anything else, zero, or more than two decimals.
+ */
+export function parseKesInput(text: string): number | null {
+  const cleaned = text.replace(/[\s,]/g, '').replace(/^KES/i, '');
+  const match = /^(\d{1,9})(?:\.(\d{1,2}))?$/.exec(cleaned);
+  if (match === null) return null;
+  const shillings = Number(match[1]);
+  const cents = Number((match[2] ?? '').padEnd(2, '0'));
+  const minor = shillings * 100 + cents;
+  return minor > 0 && Number.isSafeInteger(minor) ? minor : null;
+}
+
+/** Minor units as an editable input ("150000" -> "1500", "150050" -> "1500.50"). */
+export function minorToInput(minor: number): string {
+  if (!Number.isSafeInteger(minor) || minor <= 0) return '';
+  const cents = minor % 100;
+  const major = Math.trunc(minor / 100);
+  return cents === 0 ? String(major) : `${major}.${String(cents).padStart(2, '0')}`;
+}

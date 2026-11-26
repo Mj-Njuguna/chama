@@ -70,7 +70,15 @@ void factorsMatchSchema;
 const KNOWN_FACTORS: ReadonlySet<string> = new Set(STEP_UP_FACTORS);
 
 const KNOWN_CODES: ReadonlySet<string> = new Set(ERROR_CODES);
-const KNOWN_REASONS: ReadonlySet<string> = new Set(ERROR_REASONS);
+/**
+ * DRAFT (phase 2): state_conflict reasons from the phase-2 contract that the backend schema does
+ * not publish yet. When the schema lands, move them into ERROR_REASONS (the Exact check then
+ * proves they match) and delete this list.
+ */
+export const DRAFT_REASONS = ['payments_not_linked', 'no_cycle'] as const;
+export type DraftReason = (typeof DRAFT_REASONS)[number];
+
+const KNOWN_REASONS: ReadonlySet<string> = new Set([...ERROR_REASONS, ...DRAFT_REASONS]);
 
 /** The app's view of a failed call. `code` comes from the server; never show `message`. */
 export type ApiError = {
@@ -78,7 +86,7 @@ export type ApiError = {
   readonly status: number;
   readonly code: ErrorCode | typeof UNRECOGNIZED_ERROR;
   readonly retryAfter?: number;
-  readonly reason?: ErrorReason;
+  readonly reason?: ErrorReason | DraftReason;
   /** With invalid_pin: wrong PINs left before a lock. */
   readonly attemptsLeft?: number;
   /** With step_up_required: factors to verify, in order. Any unknown factor empties the list. */
@@ -113,7 +121,9 @@ export function toApiError(status: number, body: unknown): ApiError {
     ...(typeof retryAfter === 'number' && Number.isSafeInteger(retryAfter) && retryAfter >= 0
       ? { retryAfter }
       : {}),
-    ...(typeof reason === 'string' && KNOWN_REASONS.has(reason) ? { reason: reason as ErrorReason } : {}),
+    ...(typeof reason === 'string' && KNOWN_REASONS.has(reason)
+      ? { reason: reason as ErrorReason | DraftReason }
+      : {}),
     ...(typeof attemptsLeft === 'number' && Number.isSafeInteger(attemptsLeft) && attemptsLeft >= 0
       ? { attemptsLeft }
       : {}),
