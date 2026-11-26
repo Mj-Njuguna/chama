@@ -7,6 +7,7 @@ api_v1: list[URLPattern | URLResolver] = [  # each app adds its routes here
     path("auth/", include("apps.accounts.urls")),
     path("", include("apps.organizations.urls")),
     path("", include("apps.ledger.urls")),  # /chama/receipts
+    path("", include("apps.payments.urls")),  # /payments/..., /chama/payment(s)...
     path("", include("apps.reports.urls")),  # /chama/home
 ]
 

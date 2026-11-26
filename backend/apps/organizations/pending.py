@@ -9,7 +9,7 @@ Internal to organizations. THE ONLY MODULE that writes ``organizations_pendingch
   official is alerted. One open change per kind per chama.
 - **Apply**: an official with the same step-up, inside the window. The chama row is locked and
   the policy function runs again in the same transaction, so a freeze pressed meanwhile wins.
-  The change itself is a stub until the payments module stores the linking details.
+  The module that owns the details (payments) applies them in the same outer transaction.
 - **Cancel**: any official, no step-up. **Freeze**: any official, no step-up; cancels every open
   change, alerts every official, and blocks every step-up action until an operator clears it
   after manual review (``unfreeze_chama``).
@@ -167,7 +167,7 @@ def apply_change(identity: SessionIdentity, role: object, change_id: object) -> 
         elif now < row.effective_at:
             raise cooling_off(_seconds(row.effective_at, now))
         else:
-            # The change itself is a stub until the payments module stores the linking details.
+            # The owning module (payments) applies the details in the caller's transaction.
             row.status, row.closed_at = PendingChangeStatus.APPLIED, now
             row.closed_by_user_id = identity.user_id
             row.save(update_fields=["status", "closed_at", "closed_by_user_id"])

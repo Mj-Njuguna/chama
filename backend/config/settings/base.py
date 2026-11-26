@@ -201,6 +201,18 @@ OPERATOR_SIGNAL_PROVIDER = "apps.accounts.operator_signals.NoOpOperatorSignalPro
 LANGUAGE_CODE = "en"
 USE_I18N = False
 
+# ---------------------------------------------------------------- Payments (M-Pesa)
+# Dotted path to a zero-argument M-Pesa gateway factory. Empty: payments unavailable (linking can
+# still be saved; STK requests answer 503). The Daraja adapter is UNVERIFIED and is never a
+# default (apps/payments/daraja.py).
+MPESA_GATEWAY = env_str("MPESA_GATEWAY", "")
+# Public HTTPS origin the provider calls back (no trailing slash), e.g. https://api.example.com.
+PAYMENTS_CALLBACK_BASE_URL = env_str("PAYMENTS_CALLBACK_BASE_URL", "http://localhost:8001")
+# A pending STK prompt older than this is checked once, then marked timeout.
+STK_TIMEOUT_SECONDS = 180
+# Development only: the fake gateway answers STK prompts with success after this many seconds.
+FAKE_MPESA_AUTOCOMPLETE_SECONDS = 0
+
 # ---------------------------------------------------------------- DRF / OpenAPI
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -230,6 +242,11 @@ SPECTACULAR_SETTINGS = {
         "MembershipStatusEnum": "apps.organizations.models.MembershipStatus",
         "PendingChangeStatusEnum": "apps.organizations.models.PendingChangeStatus",
         "ReceiptChannelEnum": "apps.ledger.models.ReceiptChannel",
+        "LinkingChannelEnum": "apps.payments.models.LinkingChannel",
+        "LinkingEnvironmentEnum": "apps.payments.models.LinkingEnvironment",
+        "StkStatusEnum": "apps.payments.models.StkStatus",
+        "LinkingStateEnum": "apps.payments.views.LINKING_STATES",
+        "PaymentStateEnum": "apps.payments.views.PAYMENT_STATES",
         "CycleStatusEnum": "apps.reports.views.CYCLE_STATUSES",
     },
 }
@@ -246,6 +263,10 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
     "accounts-purge-otp-records": {
         "task": "apps.accounts.tasks.purge_otp_records",
         "schedule": 3600.0,
+    },
+    "payments-sweep-stk-timeouts": {
+        "task": "apps.payments.tasks.sweep_stk_timeouts",
+        "schedule": 60.0,
     },
 }
 CELERY_BEAT_SCHEDULE_FILENAME = env_str("CELERY_BEAT_SCHEDULE_FILENAME", "/tmp/celerybeat-schedule")  # noqa: S108

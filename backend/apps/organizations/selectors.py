@@ -90,3 +90,32 @@ def active_member_ids() -> list[uuid.UUID]:
     return list(
         Membership.objects.filter(status=MembershipStatus.ACTIVE).values_list("id", flat=True)
     )
+
+
+@dataclass(frozen=True)
+class MemberRef:
+    member_id: uuid.UUID
+    user_id: uuid.UUID
+    member_code: str
+
+
+def member_directory() -> list[MemberRef]:
+    """Every active membership of the current chama with its code (RLS-scoped)."""
+    rows = Membership.objects.filter(status=MembershipStatus.ACTIVE).values_list(
+        "id", "user_id", "member_code"
+    )
+    return [MemberRef(*row) for row in rows]
+
+
+def active_member_by_code(code: str) -> uuid.UUID | None:
+    """The active membership whose member code is ``code`` (already normalized), or None."""
+    return (
+        Membership.objects.filter(member_code=code, status=MembershipStatus.ACTIVE)
+        .values_list("id", flat=True)
+        .first()
+    )
+
+
+def member_user_id(member_id: uuid.UUID) -> uuid.UUID | None:
+    """The user behind a membership of the current chama (any status), or None."""
+    return Membership.objects.filter(id=member_id).values_list("user_id", flat=True).first()

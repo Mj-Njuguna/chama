@@ -33,6 +33,7 @@ class Action(StrEnum):
     RECORD_RECEIPT = "record_receipt"  # manual offline receipt (bank slip)
     EXPORT_DATA = "export_data"
     PAYMENT_LINKING = "payment_linking"  # the chama's paybill/till and Daraja credentials
+    ALLOCATE_PAYMENT = "allocate_payment"  # assign an unallocated M-Pesa payment to a member
     # No step-up: stopping a change must always be easy.
     REVIEW_CHAMA_CHANGES = "review_chama_changes"  # list and cancel pending changes
     FREEZE_CHAMA = "freeze_chama"  # "this wasn't me"
@@ -46,6 +47,7 @@ WRITE_ACTIONS = frozenset(
         Action.RECORD_RECEIPT,
         Action.EXPORT_DATA,
         Action.PAYMENT_LINKING,
+        Action.ALLOCATE_PAYMENT,
         Action.REVIEW_CHAMA_CHANGES,
         Action.FREEZE_CHAMA,
     }
@@ -67,6 +69,7 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.RECORD_RECEIPT: ALLOW,
         Action.EXPORT_DATA: ALLOW,
         Action.PAYMENT_LINKING: ALLOW,
+        Action.ALLOCATE_PAYMENT: ALLOW,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
         Action.FREEZE_CHAMA: ALLOW,
     },
@@ -82,6 +85,7 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.RECORD_RECEIPT: ALLOW,
         Action.EXPORT_DATA: ALLOW,
         Action.PAYMENT_LINKING: ALLOW,
+        Action.ALLOCATE_PAYMENT: ALLOW,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
         Action.FREEZE_CHAMA: ALLOW,
     },
@@ -97,6 +101,7 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.RECORD_RECEIPT: ALLOW,
         Action.EXPORT_DATA: DENY,
         Action.PAYMENT_LINKING: DENY,
+        Action.ALLOCATE_PAYMENT: ALLOW,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
         Action.FREEZE_CHAMA: ALLOW,
     },
@@ -112,6 +117,7 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.RECORD_RECEIPT: DENY,
         Action.EXPORT_DATA: DENY,
         Action.PAYMENT_LINKING: DENY,
+        Action.ALLOCATE_PAYMENT: DENY,
         Action.REVIEW_CHAMA_CHANGES: DENY,
         Action.FREEZE_CHAMA: DENY,
     },

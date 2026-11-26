@@ -25,3 +25,6 @@ INSTALLED_APPS = [*INSTALLED_APPS, "tests.rls_probe"]
 # Cheap Argon2 in tests (the cost is a setting; production keeps ~64 MiB, 3 passes).
 PIN_ARGON2_TIME_COST = 1
 PIN_ARGON2_MEMORY_KIB = 8 * 1024
+
+# Fake M-Pesa gateway (no network). Never in production (payments.E001).
+MPESA_GATEWAY = "apps.payments.fake.FakeMpesaGateway"

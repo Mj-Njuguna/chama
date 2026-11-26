@@ -1035,6 +1035,345 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: chama_not_available
+  /api/v1/chama/payment-linking:
+    get:
+      operationId: chama_payment_linking
+      description: |-
+        The chama's own paybill or till. Officials read it; changing it needs a fresh OTP, and
+        replacing active details waits out a cooling-off.
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkingOut'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen,
+            cooling_off
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+    put:
+      operationId: chama_payment_linking_update
+      description: |-
+        The chama's own paybill or till. Officials read it; changing it needs a fresh OTP, and
+        replacing active details waits out a cooling-off.
+      tags:
+      - chama
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkingInRequest'
+        required: true
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkingOut'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen,
+            cooling_off
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+  /api/v1/chama/payment-linking/apply:
+    post:
+      operationId: chama_payment_linking_apply
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkingOut'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen,
+            cooling_off
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+  /api/v1/chama/payments:
+    get:
+      operationId: chama_payments
+      description: |-
+        M-Pesa payments: a member sees their own; officials see every payment (``mine=true``
+        narrows it to their own).
+      parameters:
+      - in: query
+        name: mine
+        schema:
+          type: boolean
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+  /api/v1/chama/payments/{payment_id}/allocate:
+    post:
+      operationId: chama_payment_allocate
+      description: Assign an unallocated payment to a member (officials, fresh PIN).
+      parameters:
+      - in: path
+        name: payment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - chama
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AllocateInRequest'
+        required: true
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen,
+            cooling_off
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'state_conflict: payment_already_allocated, member_not_active'
+  /api/v1/chama/payments/stk:
+    post:
+      operationId: chama_payments_stk_create
+      description: Prompt the caller's own phone to pay the chama (M-Pesa Express).
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 'Repeat a request safely: the same key returns the same prompt.'
+      tags:
+      - chama
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StkInRequest'
+        required: true
+      security:
+      - bearerSession: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StkRequest'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'state_conflict: payments_not_linked'
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: rate_limited
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: service_unavailable
+  /api/v1/chama/payments/stk/{stk_request_id}:
+    get:
+      operationId: chama_payments_stk_status
+      parameters:
+      - in: path
+        name: stk_request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StkRequest'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+  /api/v1/chama/payments/unallocated:
+    get:
+      operationId: chama_payments_unallocated
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnallocatedList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
   /api/v1/chama/receipts:
     get:
       operationId: chama_receipts
@@ -1376,6 +1715,14 @@ components:
       - chama_id
       - member_code
       - role
+    AllocateInRequest:
+      type: object
+      properties:
+        member_id:
+          type: string
+          format: uuid
+      required:
+      - member_id
     ChamaHome:
       type: object
       description: Values are null until the module that computes them is live.
@@ -1730,6 +2077,9 @@ components:
             * `phone_digits` - phone_digits
             * `duplicate_receipt` - duplicate_receipt
             * `member_not_active` - member_not_active
+            * `payments_not_linked` - payments_not_linked
+            * `payment_already_allocated` - payment_already_allocated
+            * `linking_changed` - linking_changed
         attempts_left:
           type: integer
           description: With invalid_pin.
@@ -1771,6 +2121,9 @@ components:
       - phone_digits
       - duplicate_receipt
       - member_not_active
+      - payments_not_linked
+      - payment_already_allocated
+      - linking_changed
       type: string
       description: |-
         * `invalid_format` - invalid_format
@@ -1783,6 +2136,9 @@ components:
         * `phone_digits` - phone_digits
         * `duplicate_receipt` - duplicate_receipt
         * `member_not_active` - member_not_active
+        * `payments_not_linked` - payments_not_linked
+        * `payment_already_allocated` - payment_already_allocated
+        * `linking_changed` - linking_changed
     FreshFactor:
       type: object
       properties:
@@ -1911,6 +2267,100 @@ components:
       - payment_details
       type: string
       description: '* `payment_details` - payment_details'
+    LinkingChannelEnum:
+      enum:
+      - paybill
+      - till
+      type: string
+      description: |-
+        * `paybill` - Paybill
+        * `till` - Till
+    LinkingEnvironmentEnum:
+      enum:
+      - sandbox
+      - production
+      type: string
+      description: |-
+        * `sandbox` - Sandbox
+        * `production` - Production
+    LinkingInRequest:
+      type: object
+      properties:
+        channel:
+          $ref: '#/components/schemas/LinkingChannelEnum'
+        shortcode:
+          type: string
+          minLength: 1
+          pattern: ^[0-9]{5,12}$
+        environment:
+          $ref: '#/components/schemas/LinkingEnvironmentEnum'
+        consumer_key:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 200
+        consumer_secret:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 200
+        passkey:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 200
+      required:
+      - channel
+      - consumer_key
+      - consumer_secret
+      - environment
+      - passkey
+      - shortcode
+    LinkingOut:
+      type: object
+      properties:
+        channel:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/LinkingChannelEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        shortcode:
+          type: string
+          nullable: true
+        environment:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/LinkingEnvironmentEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        credentials_set:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/LinkingStateEnum'
+        pending_change_id:
+          type: string
+          format: uuid
+          nullable: true
+        pending_shortcode:
+          type: string
+          nullable: true
+      required:
+      - channel
+      - credentials_set
+      - environment
+      - pending_change_id
+      - pending_shortcode
+      - shortcode
+      - status
+    LinkingStateEnum:
+      enum:
+      - not_linked
+      - pending
+      - active
+      type: string
+      description: |-
+        * `not_linked` - not_linked
+        * `pending` - pending
+        * `active` - active
     Login:
       type: object
       properties:
@@ -2245,6 +2695,35 @@ components:
           description: 1 to 50 characters after trimming; no control or invisible
             characters.
           maxLength: 200
+    Payment:
+      type: object
+      properties:
+        payment_id:
+          type: string
+          format: uuid
+        member_id:
+          type: string
+          format: uuid
+          nullable: true
+        amount_minor:
+          type: integer
+        mpesa_receipt:
+          type: string
+        received_at:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/PaymentStateEnum'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+      required:
+      - amount_minor
+      - member_id
+      - mpesa_receipt
+      - payment_id
+      - received_at
+      - source
+      - status
     PaymentChannelEnum:
       enum:
       - paybill
@@ -2253,6 +2732,23 @@ components:
       description: |-
         * `paybill` - paybill
         * `till` - till
+    PaymentList:
+      type: object
+      properties:
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+      required:
+      - payments
+    PaymentStateEnum:
+      enum:
+      - allocated
+      - unallocated
+      type: string
+      description: |-
+        * `allocated` - allocated
+        * `unallocated` - unallocated
     PenaltyTypeEnum:
       enum:
       - none
@@ -2329,6 +2825,7 @@ components:
       - record_receipt
       - export_data
       - payment_linking
+      - allocate_payment
       - review_chama_changes
       - freeze_chama
       type: string
@@ -2344,6 +2841,7 @@ components:
         * `record_receipt` - record_receipt
         * `export_data` - export_data
         * `payment_linking` - payment_linking
+        * `allocate_payment` - allocate_payment
         * `review_chama_changes` - review_chama_changes
         * `freeze_chama` - freeze_chama
     PinChangeRequest:
@@ -2606,6 +3104,14 @@ components:
             $ref: '#/components/schemas/SecurityEventOut'
       required:
       - events
+    SourceEnum:
+      enum:
+      - c2b
+      - stk
+      type: string
+      description: |-
+        * `c2b` - c2b
+        * `stk` - stk
     StepUpFactorEnum:
       enum:
       - otp
@@ -2627,6 +3133,71 @@ components:
       required:
       - challenge_id
       - code
+    StkInRequest:
+      type: object
+      properties:
+        amount_minor:
+          type: integer
+          maximum: 15000000
+          minimum: 100
+          description: Whole shillings only (a multiple of 100).
+      required:
+      - amount_minor
+    StkRequest:
+      type: object
+      properties:
+        stk_request_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/StkStatusEnum'
+        amount_minor:
+          type: integer
+        mpesa_receipt:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - amount_minor
+      - created_at
+      - mpesa_receipt
+      - status
+      - stk_request_id
+    StkStatusEnum:
+      enum:
+      - pending
+      - succeeded
+      - failed
+      - cancelled
+      - timeout
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `succeeded` - Succeeded
+        * `failed` - Failed
+        * `cancelled` - Cancelled
+        * `timeout` - Timeout
+    Suggestion:
+      type: object
+      properties:
+        member_id:
+          type: string
+          format: uuid
+        reason:
+          $ref: '#/components/schemas/SuggestionReasonEnum'
+      required:
+      - member_id
+      - reason
+    SuggestionReasonEnum:
+      enum:
+      - similar_code
+      - phone_pattern
+      type: string
+      description: |-
+        * `similar_code` - similar_code
+        * `phone_pattern` - phone_pattern
     SwitchChamaRequest:
       type: object
       properties:
@@ -2676,6 +3247,55 @@ components:
       description: |-
         * `expo` - expo
         * `fcm` - fcm
+    UnallocatedList:
+      type: object
+      properties:
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnallocatedPayment'
+      required:
+      - payments
+    UnallocatedPayment:
+      type: object
+      properties:
+        payment_id:
+          type: string
+          format: uuid
+        member_id:
+          type: string
+          format: uuid
+          nullable: true
+        amount_minor:
+          type: integer
+        mpesa_receipt:
+          type: string
+        received_at:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/PaymentStateEnum'
+        payer_masked:
+          type: string
+        bill_ref:
+          type: string
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Suggestion'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+      required:
+      - amount_minor
+      - bill_ref
+      - member_id
+      - mpesa_receipt
+      - payer_masked
+      - payment_id
+      - received_at
+      - source
+      - status
+      - suggestions
   securitySchemes:
     bearerSession:
       type: http
