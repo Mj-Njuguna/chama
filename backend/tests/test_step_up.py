@@ -103,6 +103,7 @@ def test_step_up_table():
     assert STEP_UP == {
         Action.RECORD_RECEIPT: ("pin",),
         Action.ALLOCATE_PAYMENT: ("pin",),
+        Action.WAIVE_FINE: ("pin",),
         Action.EDIT_CONSTITUTION: ("pin",),
         Action.MANAGE_MEMBERS: ("otp",),
         Action.CHANGE_ROLES: ("otp",),

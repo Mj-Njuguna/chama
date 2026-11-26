@@ -164,6 +164,11 @@ STATE_CONFLICTS: tuple[str, ...] = (
     "payments_not_linked",
     "payment_already_allocated",
     "linking_changed",
+    # fines and waivers
+    "fine_not_open",
+    "waiver_pending",
+    "waiver_decided",
+    "same_official",
 )
 # ``reason`` sub-codes: those of invalid_phone, pin_rejected and state_conflict.
 ERROR_REASONS = (*(reason.value for reason in PhoneError), *PIN_REJECTIONS, *STATE_CONFLICTS)

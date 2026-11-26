@@ -10,6 +10,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.contributions.services import (
+    collection_summary,
+    cycle_summary_for_member,
+    pending_approvals_count,
+)
 from apps.ledger.services import LedgerAccount, cash_balance, member_balance
 from apps.organizations.services import (
     OFFICIALS,
@@ -56,21 +61,23 @@ def _member_section(member_id: uuid.UUID) -> dict[str, Any]:
     owed = member_balance(LedgerAccount.LOANS_RECEIVABLE, member_id) + member_balance(
         LedgerAccount.INTEREST_RECEIVABLE, member_id
     )
+    cycle = cycle_summary_for_member(member_id)
     return {
         "savings_minor": savings,
-        "cycle_status": None,  # contribution cycles: phase 2
-        "cycle_due_date": None,
-        "cycle_balance_minor": None,
+        "cycle_status": cycle.status,
+        "cycle_due_date": cycle.due_date,
+        "cycle_balance_minor": cycle.balance_minor,
         "active_loan_balance_minor": owed,
     }
 
 
 def _official_section() -> dict[str, Any]:
+    collection = collection_summary()
     return {
         "liquidity_minor": cash_balance(),
-        "collection_rate_percent": None,  # contribution cycles: phase 2
-        "pending_approvals": None,  # loan and expense approvals: phases 3 and 4
-        "overdue_count": None,  # contribution cycles: phase 2
+        "collection_rate_percent": collection.collection_rate_percent,
+        "pending_approvals": pending_approvals_count(),  # fine waivers; loans in phase 3
+        "overdue_count": collection.overdue_count,
     }
 
 

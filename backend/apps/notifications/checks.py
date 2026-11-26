@@ -25,6 +25,16 @@ def check_no_fake_senders_outside_dev(
                 id="notifications.E001",
             )
         )
+    fake_messages = [
+        ch for ch, path in settings.MESSAGE_SENDERS.items() if path.startswith(FAKE_MODULE)
+    ]
+    if fake_messages:
+        errors.append(
+            Error(
+                f"fake message senders configured for {sorted(fake_messages)}",
+                id="notifications.E005",
+            )
+        )
     if settings.PUSH_PROVIDER.startswith(FAKE_MODULE):
         errors.append(
             Error(

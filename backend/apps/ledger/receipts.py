@@ -1,8 +1,8 @@
 """Manual receipts: money an official records by hand (internal).
 
-The receipt row and its ledger posting commit together. A receipt for a member credits their
-savings for now; when contribution obligations, fines and loans exist, the payment allocation
-in ``contributions`` decides where it goes. A receipt without a member lands in ``unallocated``
+The receipt row and its ledger posting commit together. A receipt for a member goes through
+the payment allocation in ``contributions`` (fines, due loan installments, contributions, then
+savings). A receipt without a member lands in ``unallocated``
 for the resolver. Both rows are append-only: a mistake is corrected by a reversal.
 """
 
@@ -81,11 +81,6 @@ def record_receipt(
         raise state_conflict("member_not_active", "The member is not active in this chama.")
 
     cash = _CASH[ReceiptChannel(channel)]
-    credit = (
-        Line(LedgerAccount.MEMBER_SAVINGS, -amount_minor, member_id)
-        if member_id is not None
-        else Line(LedgerAccount.UNALLOCATED, -amount_minor)
-    )
     try:
         with transaction.atomic():
             receipt = Receipt.objects.create(
@@ -98,14 +93,25 @@ def record_receipt(
                 note=note[:200],
                 recorded_by_member_id=recorded_by_member_id,
             )
-            post(
-                chama_id,
-                TransactionKind.RECEIPT,
-                f"receipt:{receipt.id}",
-                [Line(cash, amount_minor), credit],
-                member_id=member_id,
-                memo=f"{channel} {ref}",
-            )
+            if member_id is None:
+                post(
+                    chama_id,
+                    TransactionKind.RECEIPT,
+                    f"receipt:{receipt.id}",
+                    [Line(cash, amount_minor), Line(LedgerAccount.UNALLOCATED, -amount_minor)],
+                    memo=f"{channel} {ref}",
+                )
+            else:
+                # Fines, due loan installments and contributions first, the rest to savings.
+                from apps.contributions.services import allocate
+
+                allocate(
+                    chama_id,
+                    member_id=member_id,
+                    amount_minor=amount_minor,
+                    source_key=f"receipt:{receipt.id}",
+                    debit_account=cash,
+                )
     except IntegrityError as error:
         diag = getattr(getattr(error, "__cause__", None), "diag", None)
         if getattr(diag, "constraint_name", None) == _REFERENCE_CONSTRAINT:

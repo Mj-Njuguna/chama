@@ -342,6 +342,15 @@ def _answer(
             ]
         )
         _event(kind, identity, chama_id, role=membership.role)
+        if accept:
+            from apps.notifications.services import publish_feed_event
+
+            publish_feed_event(
+                chama_id,
+                "member_joined",
+                {"member_id": str(membership.id), "member_name": membership.roster_name},
+                key=f"member:{membership.id}:joined",
+            )
         return membership
 
 

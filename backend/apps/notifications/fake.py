@@ -91,3 +91,53 @@ class FakePushProvider:
 
         PUSHED.append((token_type, token, message))
         return PushOutcome.ACCEPTED
+
+
+# ---------------------------------------------------------------- member messages (fakes)
+
+MESSAGE_OUTBOX_PREFIX = "fake-message-outbox:"
+# (channel, phone) -> "accepted" | "undeliverable" | "failed". Tests only.
+MESSAGE_BEHAVIOUR: dict[tuple[str, str], str] = {}
+
+
+class _FakeMessenger:
+    channel = ""
+
+    def send_template(
+        self, phone_e164: str, template: str, params: list[str], *, timeout: float
+    ) -> "Any":
+        from apps.notifications.messaging import Outcome, SendResult
+
+        behaviour = MESSAGE_BEHAVIOUR.get((self.channel, phone_e164), "accepted")
+        if behaviour == "undeliverable":
+            return SendResult(Outcome.UNDELIVERABLE, error_code="131026")
+        if behaviour == "failed":
+            return SendResult(Outcome.FAILED, error_code="fake")
+        provider_id = f"fake.{self.channel}.{time.time_ns()}"
+        entry = {
+            "channel": self.channel,
+            "template": template,
+            "params": params,
+            "provider_message_id": provider_id,
+            "sent_at": _now(),
+        }
+        client = get_redis()
+        key = MESSAGE_OUTBOX_PREFIX + phone_e164
+        client.lpush(key, json.dumps(entry))
+        client.ltrim(key, 0, OUTBOX_KEEP - 1)
+        client.expire(key, settings.FAKE_OTP_OUTBOX_TTL_SECONDS)
+        return SendResult(Outcome.ACCEPTED, provider_message_id=provider_id)
+
+
+class FakeWhatsAppMessenger(_FakeMessenger):
+    channel = "whatsapp"
+
+
+class FakeSmsMessenger(_FakeMessenger):
+    channel = "sms"
+
+
+def message_outbox(phone_e164: str) -> list[dict[str, Any]]:
+    """Messages the fakes accepted for ``phone_e164``, newest first."""
+    raw = get_redis().lrange(MESSAGE_OUTBOX_PREFIX + phone_e164, 0, -1)
+    return [json.loads(item) for item in raw]

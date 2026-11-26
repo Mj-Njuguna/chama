@@ -16,6 +16,7 @@ from apps.organizations.chamas import checked_identity
 from apps.organizations.codes import is_valid_member_code, normalize_member_code
 from apps.organizations.constitution import rules_for_chama
 from apps.organizations.errors import chama_not_available
+from apps.organizations.members import chama_name
 from apps.organizations.models import PendingChangeKind
 from apps.organizations.pending import (
     ChangeSummary,
@@ -27,6 +28,7 @@ from apps.organizations.pending import (
 from apps.organizations.permissions import Action, RequiresAction, RequiresChama
 from apps.organizations.roles import OFFICIALS, Role
 from apps.organizations.selectors import (
+    MemberContact,
     MemberRef,
     MembershipSummary,
     active_member_by_code,
@@ -34,9 +36,12 @@ from apps.organizations.selectors import (
     current_membership_id,
     current_role,
     is_active_member,
+    member_contacts,
     member_directory,
+    member_names,
     member_user_id,
     memberships_for_user,
+    set_scheduled_stk_opt_in,
 )
 from apps.organizations.stepup import role_allows as is_allowed  # refuses step-up actions
 
@@ -44,6 +49,7 @@ __all__ = [
     "OFFICIALS",
     "Action",
     "ChangeSummary",
+    "MemberContact",
     "MemberRef",
     "MembershipSummary",
     "PendingChangeKind",
@@ -53,6 +59,7 @@ __all__ = [
     "active_member_by_code",
     "active_member_ids",
     "apply_change",
+    "chama_name",
     "chama_not_available",
     "checked_identity",
     "current_membership_id",
@@ -60,7 +67,9 @@ __all__ = [
     "is_active_member",
     "is_allowed",
     "is_valid_member_code",
+    "member_contacts",
     "member_directory",
+    "member_names",
     "member_user_id",
     "memberships_for_user",
     "normalize_member_code",
@@ -68,4 +77,5 @@ __all__ = [
     "open_changes",
     "request_change",
     "rules_for_chama",
+    "set_scheduled_stk_opt_in",
 ]
