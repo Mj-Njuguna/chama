@@ -258,7 +258,8 @@ SPECTACULAR_SETTINGS = {
         "StkStatusEnum": "apps.payments.models.StkStatus",
         "LinkingStateEnum": "apps.payments.views.LINKING_STATES",
         "PaymentStateEnum": "apps.payments.views.PAYMENT_STATES",
-        "CycleStatusEnum": "apps.reports.views.CYCLE_STATUSES",
+        "MemberCycleStatusEnum": "apps.reports.views.CYCLE_STATUSES",
+        "CycleStatusEnum": "apps.contributions.models.CycleStatus",
     },
 }
 

@@ -848,6 +848,17 @@ paths:
     get:
       operationId: chama_feed
       description: The active chama's activity feed, newest first (every member).
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: next_cursor from the previous page
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Page size (capped by the server)
       tags:
       - chama
       security:
@@ -2738,7 +2749,7 @@ components:
         cycle_status:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/CycleStatusEnum'
+          - $ref: '#/components/schemas/MemberCycleStatusEnum'
           - $ref: '#/components/schemas/NullEnum'
         cycle_due_date:
           type: string
@@ -3102,6 +3113,18 @@ components:
       - role
       - status
       - user_id
+    MemberCycleStatusEnum:
+      enum:
+      - paid
+      - due
+      - overdue
+      - none
+      type: string
+      description: |-
+        * `paid` - paid
+        * `due` - due
+        * `overdue` - overdue
+        * `none` - none
     Members:
       type: object
       properties:

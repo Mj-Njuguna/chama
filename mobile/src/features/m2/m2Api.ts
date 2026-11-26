@@ -1,9 +1,9 @@
-import type { M2Client, M2Schemas } from '../../api/draftM2';
+import type { M2Client, M2Schemas } from '../../api/m2Client';
 import { bearer, runCall } from '../../auth/apiCall';
 import type { AuthedCall } from '../../auth/tokenManager';
 
-export type PaymentLinking = M2Schemas['PaymentLinking'];
-export type PaymentLinkingUpdate = M2Schemas['PaymentLinkingUpdate'];
+export type PaymentLinking = M2Schemas['LinkingOut'];
+export type PaymentLinkingUpdate = M2Schemas['LinkingInRequest'];
 export type StkRequest = M2Schemas['StkRequest'];
 export type StkStatus = M2Schemas['StkStatusEnum'];
 export type Payment = M2Schemas['Payment'];
@@ -11,10 +11,10 @@ export type UnallocatedPayment = M2Schemas['UnallocatedPayment'];
 export type Cycle = M2Schemas['Cycle'];
 export type Obligation = M2Schemas['Obligation'];
 export type Collection = M2Schemas['Collection'];
-export type CollectionMember = M2Schemas['CollectionMember'];
+export type CollectionMember = M2Schemas['CollectionRow'];
 export type StatementEntry = M2Schemas['StatementEntry'];
 export type Cashbook = M2Schemas['Cashbook'];
-export type CashbookTransaction = M2Schemas['CashbookTransaction'];
+export type CashbookTransaction = M2Schemas['CashbookEntry'];
 export type Waiver = M2Schemas['Waiver'];
 export type FeedPage = M2Schemas['FeedPage'];
 export type FeedEvent = M2Schemas['FeedEvent'];

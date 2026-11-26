@@ -1,12 +1,10 @@
 import createClient, { type Client } from 'openapi-fetch';
 
-import type { components, paths } from './generated/draft-m2';
+import type { components, paths } from './generated/schema';
 
 /**
- * DRAFT client for the phase-2 endpoints, typed from `src/api/draft/m2.openapi.yaml`
- * (`npm run gen:api:draft`). This is the ONLY module that imports the draft types. When the
- * backend schema publishes these endpoints, point these exports at `./generated/schema` and the
- * main client, then delete the draft files.
+ * Typed client for the payments, cycles, ledger-view, waiver and feed endpoints, generated from the
+ * backend schema (`npm run gen:api`).
  */
 export type M2Client = Client<paths>;
 export type M2Schemas = components['schemas'];

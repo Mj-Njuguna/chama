@@ -6,7 +6,7 @@ from typing import Any
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import serializers
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -43,6 +43,10 @@ class FeedView(APIView):
 
     @extend_schema(
         operation_id="chama_feed",
+        parameters=[
+            OpenApiParameter("cursor", str, description="next_cursor from the previous page"),
+            OpenApiParameter("limit", int, description="Page size (capped by the server)"),
+        ],
         responses={
             200: FeedPageSerializer,
             400: OpenApiResponse(ErrorSerializer, description="validation_error"),

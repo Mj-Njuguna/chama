@@ -1,5 +1,5 @@
 import { createApiClient } from '../api/client';
-import { createM2Client } from '../api/draftM2';
+import { createM2Client } from '../api/m2Client';
 import { type ChamaApi, createChamaApi } from '../features/chamas/chamaApi';
 import { createLoginApi, type LoginApi } from '../features/login/loginApi';
 import { createM2Api, type M2Api } from '../features/m2/m2Api';

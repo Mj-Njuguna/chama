@@ -297,6 +297,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/chama/cashbook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chama_cashbook"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/chama/changes": {
         parameters: {
             query?: never;
@@ -331,6 +347,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/chama/collection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chama_collection"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/chama/constitution": {
         parameters: {
             query?: never;
@@ -347,6 +379,56 @@ export interface paths {
         head?: never;
         /** @description The active chama's rules. Every member reads; officials change with a fresh PIN. */
         patch: operations["chama_constitution_update"];
+        trace?: never;
+    };
+    "/api/v1/chama/cycles/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chama_cycle_current"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The active chama's activity feed, newest first (every member). */
+        get: operations["chama_feed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/fines/{obligation_id}/waive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Request a waiver of a fine (an official, fresh PIN). A different official approves. */
+        post: operations["chama_fine_waive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/chama/freeze": {
@@ -458,6 +540,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/chama/membership": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The caller's own preferences in the active chama. */
+        get: operations["chama_membership"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description The caller's own preferences in the active chama. */
+        patch: operations["chama_membership_update"];
+        trace?: never;
+    };
+    "/api/v1/chama/obligations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chama_obligations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/payment-linking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The chama's own paybill or till. Officials read it; changing it needs a fresh OTP, and
+         *     replacing active details waits out a cooling-off.
+         */
+        get: operations["chama_payment_linking"];
+        /**
+         * @description The chama's own paybill or till. Officials read it; changing it needs a fresh OTP, and
+         *     replacing active details waits out a cooling-off.
+         */
+        put: operations["chama_payment_linking_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/payment-linking/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["chama_payment_linking_apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description M-Pesa payments: a member sees their own; officials see every payment (``mine=true``
+         *     narrows it to their own).
+         */
+        get: operations["chama_payments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/payments/{payment_id}/allocate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Assign an unallocated payment to a member (officials, fresh PIN). */
+        post: operations["chama_payment_allocate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/payments/stk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Prompt the caller's own phone to pay the chama (M-Pesa Express). */
+        post: operations["chama_payments_stk_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/payments/stk/{stk_request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chama_payments_stk_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/payments/unallocated": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chama_payments_unallocated"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/chama/receipts": {
         parameters: {
             query?: never;
@@ -487,6 +729,54 @@ export interface paths {
         get: operations["chama_security_events"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/statement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chama_statement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/waivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["chama_waivers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chama/waivers/{waiver_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["chama_waiver_approve"];
         delete?: never;
         options?: never;
         head?: never;
@@ -581,6 +871,34 @@ export interface components {
             role: components["schemas"]["RoleEnum"];
             member_code: string;
         };
+        /**
+         * @description * `member_savings` - member_savings
+         *     * `fines_receivable` - fines_receivable
+         *     * `loans_receivable` - loans_receivable
+         *     * `interest_receivable` - interest_receivable
+         * @enum {string}
+         */
+        AccountEnum: "member_savings" | "fines_receivable" | "loans_receivable" | "interest_receivable";
+        AllocateInRequest: {
+            /** Format: uuid */
+            member_id: string;
+        };
+        Cashbook: {
+            balance_minor: number;
+            transactions: components["schemas"]["CashbookEntry"][];
+        };
+        CashbookEntry: {
+            /** Format: uuid */
+            transaction_id: string;
+            kind: string;
+            memo: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            member_id: string | null;
+            /** @description Money in (positive) or out (negative). */
+            cash_minor: number;
+        };
         /** @description Values are null until the module that computes them is live. */
         ChamaHome: {
             role: components["schemas"]["RoleEnum"];
@@ -600,6 +918,26 @@ export interface components {
             role: components["schemas"]["RoleEnum"];
             status: components["schemas"]["MembershipStatusEnum"];
         };
+        Collection: {
+            /** Format: uuid */
+            cycle_id: string | null;
+            members: components["schemas"]["CollectionRow"][];
+        };
+        CollectionRow: {
+            /** Format: uuid */
+            member_id: string;
+            name: string;
+            status: components["schemas"]["CollectionRowStatusEnum"];
+            balance_minor: number;
+        };
+        /**
+         * @description * `paid` - paid
+         *     * `partial` - partial
+         *     * `unpaid` - unpaid
+         *     * `overdue` - overdue
+         * @enum {string}
+         */
+        CollectionRowStatusEnum: "paid" | "partial" | "unpaid" | "overdue";
         ConstitutionOut: {
             contribution_frequency: components["schemas"]["ContributionFrequencyEnum"];
             /** @description Base contribution per cycle, KES minor units (cents). */
@@ -655,14 +993,24 @@ export interface components {
              */
             active_chama_id: string;
         };
+        Cycle: {
+            /** Format: uuid */
+            cycle_id: string;
+            /** Format: date */
+            period_start: string;
+            /** Format: date */
+            due_date: string;
+            /** Format: date */
+            grace_until: string;
+            amount_minor: number;
+            status: components["schemas"]["CycleStatusEnum"];
+        };
         /**
-         * @description * `paid` - paid
-         *     * `due` - due
-         *     * `overdue` - overdue
-         *     * `none` - none
+         * @description * `open` - open
+         *     * `closed` - closed
          * @enum {string}
          */
-        CycleStatusEnum: "paid" | "due" | "overdue" | "none";
+        CycleStatusEnum: "open" | "closed";
         DeviceList: {
             devices: components["schemas"]["DeviceOut"][];
         };
@@ -770,6 +1118,13 @@ export interface components {
              *     * `phone_digits` - phone_digits
              *     * `duplicate_receipt` - duplicate_receipt
              *     * `member_not_active` - member_not_active
+             *     * `payments_not_linked` - payments_not_linked
+             *     * `payment_already_allocated` - payment_already_allocated
+             *     * `linking_changed` - linking_changed
+             *     * `fine_not_open` - fine_not_open
+             *     * `waiver_pending` - waiver_pending
+             *     * `waiver_decided` - waiver_decided
+             *     * `same_official` - same_official
              */
             reason?: components["schemas"]["ErrorReasonEnum"];
             /** @description With invalid_pin. */
@@ -801,9 +1156,30 @@ export interface components {
          *     * `phone_digits` - phone_digits
          *     * `duplicate_receipt` - duplicate_receipt
          *     * `member_not_active` - member_not_active
+         *     * `payments_not_linked` - payments_not_linked
+         *     * `payment_already_allocated` - payment_already_allocated
+         *     * `linking_changed` - linking_changed
+         *     * `fine_not_open` - fine_not_open
+         *     * `waiver_pending` - waiver_pending
+         *     * `waiver_decided` - waiver_decided
+         *     * `same_official` - same_official
          * @enum {string}
          */
-        ErrorReasonEnum: "invalid_format" | "invalid_number" | "country_not_allowed" | "not_mobile" | "not_six_digits" | "repeated" | "sequence" | "phone_digits" | "duplicate_receipt" | "member_not_active";
+        ErrorReasonEnum: "invalid_format" | "invalid_number" | "country_not_allowed" | "not_mobile" | "not_six_digits" | "repeated" | "sequence" | "phone_digits" | "duplicate_receipt" | "member_not_active" | "payments_not_linked" | "payment_already_allocated" | "linking_changed" | "fine_not_open" | "waiver_pending" | "waiver_decided" | "same_official";
+        FeedEvent: {
+            /** Format: uuid */
+            event_id: string;
+            kind: string;
+            /** Format: date-time */
+            created_at: string;
+            payload: {
+                [key: string]: unknown;
+            };
+        };
+        FeedPage: {
+            events: components["schemas"]["FeedEvent"][];
+            next_cursor: string | null;
+        };
         FreshFactor: {
             factor: components["schemas"]["StepUpFactorEnum"];
             /** @description Seconds this factor counts as fresh. */
@@ -815,7 +1191,7 @@ export interface components {
         };
         HomeMember: {
             savings_minor: number | null;
-            cycle_status: (components["schemas"]["CycleStatusEnum"] | components["schemas"]["NullEnum"]) | null;
+            cycle_status: (components["schemas"]["MemberCycleStatusEnum"] | components["schemas"]["NullEnum"]) | null;
             /** Format: date */
             cycle_due_date: string | null;
             cycle_balance_minor: number | null;
@@ -858,10 +1234,42 @@ export interface components {
             role: components["schemas"]["RoleEnum"];
         };
         /**
-         * @description * `payment_details` - payment_details
+         * @description * `paybill` - Paybill
+         *     * `till` - Till
          * @enum {string}
          */
-        KindEnum: "payment_details";
+        LinkingChannelEnum: "paybill" | "till";
+        /**
+         * @description * `sandbox` - Sandbox
+         *     * `production` - Production
+         * @enum {string}
+         */
+        LinkingEnvironmentEnum: "sandbox" | "production";
+        LinkingInRequest: {
+            channel: components["schemas"]["LinkingChannelEnum"];
+            shortcode: string;
+            environment: components["schemas"]["LinkingEnvironmentEnum"];
+            consumer_key: string;
+            consumer_secret: string;
+            passkey: string;
+        };
+        LinkingOut: {
+            channel: (components["schemas"]["LinkingChannelEnum"] | components["schemas"]["NullEnum"]) | null;
+            shortcode: string | null;
+            environment: (components["schemas"]["LinkingEnvironmentEnum"] | components["schemas"]["NullEnum"]) | null;
+            credentials_set: boolean;
+            status: components["schemas"]["LinkingStateEnum"];
+            /** Format: uuid */
+            pending_change_id: string | null;
+            pending_shortcode: string | null;
+        };
+        /**
+         * @description * `not_linked` - not_linked
+         *     * `pending` - pending
+         *     * `active` - active
+         * @enum {string}
+         */
+        LinkingStateEnum: "not_linked" | "pending" | "active";
         Login: {
             /** Format: uuid */
             session_id: string;
@@ -943,6 +1351,14 @@ export interface components {
             /** Format: date-time */
             joined_at: string | null;
         };
+        /**
+         * @description * `paid` - paid
+         *     * `due` - due
+         *     * `overdue` - overdue
+         *     * `none` - none
+         * @enum {string}
+         */
+        MemberCycleStatusEnum: "paid" | "due" | "overdue" | "none";
         Members: {
             members: components["schemas"]["Member"][];
         };
@@ -951,6 +1367,10 @@ export interface components {
             chama_id: string;
             role: string;
             status: string;
+        };
+        MembershipPreferences: {
+            /** @description Receive the M-Pesa prompt on contribution due dates. */
+            scheduled_stk_opt_in: boolean;
         };
         /**
          * @description * `active` - Active
@@ -961,6 +1381,33 @@ export interface components {
         MembershipStatusEnum: "active" | "revoked" | "invited";
         /** @enum {unknown} */
         NullEnum: null;
+        Obligation: {
+            /** Format: uuid */
+            obligation_id: string;
+            kind: components["schemas"]["ObligationKindEnum"];
+            /** Format: date */
+            due_date: string;
+            amount_minor: number;
+            paid_minor: number;
+            balance_minor: number;
+            status: components["schemas"]["ObligationStatusEnum"];
+        };
+        /**
+         * @description * `contribution` - Contribution
+         *     * `fine` - Fine
+         * @enum {string}
+         */
+        ObligationKindEnum: "contribution" | "fine";
+        ObligationList: {
+            obligations: components["schemas"]["Obligation"][];
+        };
+        /**
+         * @description * `open` - Open
+         *     * `paid` - Paid
+         *     * `waived` - Waived
+         * @enum {string}
+         */
+        ObligationStatusEnum: "open" | "paid" | "waived";
         OtpRequestRequest: {
             /** @description Any accepted format, e.g. 0712345678. */
             phone: string;
@@ -1024,12 +1471,37 @@ export interface components {
             /** @description 1 to 50 characters after trimming; no control or invisible characters. */
             display_name?: string;
         };
+        PatchedMembershipPreferencesRequest: {
+            /** @description Receive the M-Pesa prompt on contribution due dates. */
+            scheduled_stk_opt_in?: boolean;
+        };
+        Payment: {
+            /** Format: uuid */
+            payment_id: string;
+            /** Format: uuid */
+            member_id: string | null;
+            amount_minor: number;
+            mpesa_receipt: string;
+            /** Format: date-time */
+            received_at: string;
+            status: components["schemas"]["PaymentStateEnum"];
+            source: components["schemas"]["SourceEnum"];
+        };
         /**
          * @description * `paybill` - paybill
          *     * `till` - till
          * @enum {string}
          */
         PaymentChannelEnum: "paybill" | "till";
+        PaymentList: {
+            payments: components["schemas"]["Payment"][];
+        };
+        /**
+         * @description * `allocated` - allocated
+         *     * `unallocated` - unallocated
+         * @enum {string}
+         */
+        PaymentStateEnum: "allocated" | "unallocated";
         /**
          * @description * `none` - none
          *     * `flat` - flat
@@ -1040,7 +1512,7 @@ export interface components {
         PendingChange: {
             /** Format: uuid */
             id: string;
-            kind: components["schemas"]["KindEnum"];
+            kind: components["schemas"]["PendingChangeKindEnum"];
             status: components["schemas"]["PendingChangeStatusEnum"];
             /** Format: uuid */
             requested_by_user_id: string;
@@ -1057,6 +1529,11 @@ export interface components {
              */
             expires_at: string;
         };
+        /**
+         * @description * `payment_details` - payment_details
+         * @enum {string}
+         */
+        PendingChangeKindEnum: "payment_details";
         /**
          * @description * `pending` - Pending
          *     * `applied` - Applied
@@ -1078,13 +1555,15 @@ export interface components {
          *     * `change_roles` - change_roles
          *     * `edit_constitution` - edit_constitution
          *     * `record_receipt` - record_receipt
+         *     * `waive_fine` - waive_fine
          *     * `export_data` - export_data
          *     * `payment_linking` - payment_linking
+         *     * `allocate_payment` - allocate_payment
          *     * `review_chama_changes` - review_chama_changes
          *     * `freeze_chama` - freeze_chama
          * @enum {string}
          */
-        PermissionsEnum: "view_members" | "view_constitution" | "view_group_totals" | "view_security_events" | "view_invitations" | "manage_members" | "change_roles" | "edit_constitution" | "record_receipt" | "export_data" | "payment_linking" | "review_chama_changes" | "freeze_chama";
+        PermissionsEnum: "view_members" | "view_constitution" | "view_group_totals" | "view_security_events" | "view_invitations" | "manage_members" | "change_roles" | "edit_constitution" | "record_receipt" | "waive_fine" | "export_data" | "payment_linking" | "allocate_payment" | "review_chama_changes" | "freeze_chama";
         PinChangeRequest: {
             current_pin: string;
             new_pin: string;
@@ -1211,6 +1690,28 @@ export interface components {
             events: components["schemas"]["SecurityEventOut"][];
         };
         /**
+         * @description * `c2b` - c2b
+         *     * `stk` - stk
+         * @enum {string}
+         */
+        SourceEnum: "c2b" | "stk";
+        Statement: {
+            /** Format: uuid */
+            member_id: string;
+            entries: components["schemas"]["StatementEntry"][];
+        };
+        StatementEntry: {
+            /** Format: uuid */
+            transaction_id: string;
+            kind: string;
+            memo: string;
+            /** Format: date-time */
+            created_at: string;
+            account: components["schemas"]["AccountEnum"];
+            /** @description Savings: positive adds to savings. Fines and loans: positive adds to what the member owes. */
+            amount_minor: number;
+        };
+        /**
          * @description * `otp` - otp
          *     * `pin` - pin
          * @enum {string}
@@ -1221,6 +1722,39 @@ export interface components {
             challenge_id: string;
             code: string;
         };
+        StkInRequest: {
+            /** @description Whole shillings only (a multiple of 100). */
+            amount_minor: number;
+        };
+        StkRequest: {
+            /** Format: uuid */
+            stk_request_id: string;
+            status: components["schemas"]["StkStatusEnum"];
+            amount_minor: number;
+            mpesa_receipt: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description * `pending` - Pending
+         *     * `succeeded` - Succeeded
+         *     * `failed` - Failed
+         *     * `cancelled` - Cancelled
+         *     * `timeout` - Timeout
+         * @enum {string}
+         */
+        StkStatusEnum: "pending" | "succeeded" | "failed" | "cancelled" | "timeout";
+        Suggestion: {
+            /** Format: uuid */
+            member_id: string;
+            reason: components["schemas"]["SuggestionReasonEnum"];
+        };
+        /**
+         * @description * `similar_code` - similar_code
+         *     * `phone_pattern` - phone_pattern
+         * @enum {string}
+         */
+        SuggestionReasonEnum: "similar_code" | "phone_pattern";
         SwitchChamaRequest: {
             /** Format: uuid */
             chama_id: string;
@@ -1246,6 +1780,56 @@ export interface components {
          * @enum {string}
          */
         TokenTypeEnum: "expo" | "fcm";
+        UnallocatedList: {
+            payments: components["schemas"]["UnallocatedPayment"][];
+        };
+        UnallocatedPayment: {
+            /** Format: uuid */
+            payment_id: string;
+            /** Format: uuid */
+            member_id: string | null;
+            amount_minor: number;
+            mpesa_receipt: string;
+            /** Format: date-time */
+            received_at: string;
+            status: components["schemas"]["PaymentStateEnum"];
+            payer_masked: string;
+            bill_ref: string;
+            suggestions: components["schemas"]["Suggestion"][];
+            source: components["schemas"]["SourceEnum"];
+        };
+        Waiver: {
+            /** Format: uuid */
+            waiver_id: string;
+            /** Format: uuid */
+            obligation_id: string;
+            /** Format: uuid */
+            member_id: string;
+            reason: string;
+            status: components["schemas"]["WaiverStatusEnum"];
+            /** Format: uuid */
+            requested_by_member_id: string;
+            /** Format: uuid */
+            approved_by_member_id: string | null;
+            /** @description The fine's open balance to waive. */
+            amount_minor: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            decided_at: string | null;
+        };
+        WaiverList: {
+            waivers: components["schemas"]["Waiver"][];
+        };
+        WaiverRequestRequest: {
+            reason: string;
+        };
+        /**
+         * @description * `pending` - Pending
+         *     * `approved` - Approved
+         * @enum {string}
+         */
+        WaiverStatusEnum: "pending" | "approved";
     };
     responses: never;
     parameters: never;
@@ -2044,6 +2628,52 @@ export interface operations {
             };
         };
     };
+    chama_cashbook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cashbook"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available, not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     chama_changes_list: {
         parameters: {
             query?: never;
@@ -2119,6 +2749,52 @@ export interface operations {
                 };
             };
             /** @description not_found (no open change) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_collection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Collection"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available, not_found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2216,6 +2892,164 @@ export interface operations {
             };
             /** @description chama_not_available */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_cycle_current: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cycle"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available, not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_feed: {
+        parameters: {
+            query?: {
+                /** @description next_cursor from the previous page */
+                cursor?: string;
+                /** @description Page size (capped by the server) */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedPage"];
+                };
+            };
+            /** @description validation_error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_fine_waive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obligation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WaiverRequestRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Waiver"];
+                };
+            };
+            /** @description validation_error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available, not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description state_conflict: fine_not_open, waiver_pending, waiver_decided, same_official */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2571,6 +3405,558 @@ export interface operations {
             };
         };
     };
+    chama_membership: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipPreferences"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_membership_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedMembershipPreferencesRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipPreferences"];
+                };
+            };
+            /** @description validation_error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_obligations: {
+        parameters: {
+            query?: {
+                /** @description `me` (default) or a membership id (officials only). */
+                member?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationList"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available, not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_payment_linking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkingOut"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen, cooling_off */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_payment_linking_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkingInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkingOut"];
+                };
+            };
+            /** @description validation_error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen, cooling_off */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_payment_linking_apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkingOut"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen, cooling_off */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_payments: {
+        parameters: {
+            query?: {
+                mine?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentList"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_payment_allocate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AllocateInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description validation_error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen, cooling_off */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description state_conflict: payment_already_allocated, member_not_active */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_payments_stk_create: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeat a request safely: the same key returns the same prompt. */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StkInRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StkRequest"];
+                };
+            };
+            /** @description validation_error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description state_conflict: payments_not_linked */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description rate_limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description service_unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_payments_stk_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stk_request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StkRequest"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_payments_unallocated: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnallocatedList"];
+                };
+            };
+            /** @description not_authenticated, invalid_token, token_expired, session_revoked, session_expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     chama_receipts: {
         parameters: {
             query?: never;
@@ -2713,6 +4099,160 @@ export interface operations {
             };
             /** @description permission_denied, step_up_required, pin_not_set, chama_frozen, cooling_off */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_statement: {
+        parameters: {
+            query?: {
+                /** @description `me` (default) or a membership id (officials only). */
+                member?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Statement"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available, not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_waivers: {
+        parameters: {
+            query?: {
+                status?: "approved" | "pending";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WaiverList"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available, not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    chama_waiver_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                waiver_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Waiver"];
+                };
+            };
+            /** @description not_authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description permission_denied, step_up_required, pin_not_set, chama_frozen */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description chama_not_available, not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description state_conflict: fine_not_open, waiver_pending, waiver_decided, same_official */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

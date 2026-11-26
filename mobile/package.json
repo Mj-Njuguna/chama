@@ -15,8 +15,7 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "gen:api": "openapi-typescript ../backend/openapi/schema.yaml -o src/api/generated/schema.d.ts",
-    "check:api": "npm run gen:api && npm run gen:api:draft && git diff --exit-code -- src/api/generated",
-    "gen:api:draft": "openapi-typescript src/api/draft/m2.openapi.yaml -o src/api/generated/draft-m2.d.ts"
+    "check:api": "npm run gen:api && git diff --exit-code -- src/api/generated"
   },
   "jest": {
     "preset": "jest-expo",
