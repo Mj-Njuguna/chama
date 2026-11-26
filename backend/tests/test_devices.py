@@ -461,5 +461,6 @@ def test_fake_push_provider_is_refused_where_fakes_are_not_allowed(settings):
     settings.OTP_SENDERS = {}
     settings.FAKE_OTP_OUTBOX_ENABLED = False
     settings.INVITE_SENDER = ""
+    settings.MESSAGE_SENDERS = {}
     settings.PUSH_PROVIDER = "apps.notifications.fake.FakePushProvider"
     assert [e.id for e in check_no_fake_senders_outside_dev(None)] == ["notifications.E003"]

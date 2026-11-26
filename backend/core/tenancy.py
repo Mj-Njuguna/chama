@@ -139,6 +139,11 @@ RLS_EXEMPT_TABLES: dict[str, str] = {
     "auth_group_permissions": (
         "Installed with django.contrib.auth. Unused (no PermissionsMixin); never holds data."
     ),
+    "notifications_providermessageref": (
+        "Maps a provider message id (WhatsApp wamid) to its chama and message. Provider status "
+        "webhooks arrive with no chama context, so the lookup must happen before one exists. "
+        "IDs only, no content. Read and written only by apps.notifications."
+    ),
 }
 
 _IDENTIFIER = re.compile(r"^[a-z_][a-z0-9_]{0,62}$")

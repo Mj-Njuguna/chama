@@ -19,6 +19,13 @@ OTP_SENDERS = {
 }
 INVITE_SENDER = "apps.notifications.invites.FakeInviteSender"
 PUSH_PROVIDER = "apps.notifications.fake.FakePushProvider"
+CONTRIBUTIONS_JOB_JITTER_SECONDS = 0
+WHATSAPP_APP_SECRET = "test-app-secret"  # noqa: S105
+WHATSAPP_VERIFY_TOKEN = "test-verify-token"  # noqa: S105
+MESSAGE_SENDERS = {
+    "whatsapp": "apps.notifications.fake.FakeWhatsAppMessenger",
+    "sms": "apps.notifications.fake.FakeSmsMessenger",
+}
 
 # Test-only app with one chama-scoped table, to prove RLS independently of real chama tables.
 INSTALLED_APPS = [*INSTALLED_APPS, "tests.rls_probe"]

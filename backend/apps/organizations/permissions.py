@@ -31,6 +31,7 @@ class Action(StrEnum):
     CHANGE_ROLES = "change_roles"
     EDIT_CONSTITUTION = "edit_constitution"
     RECORD_RECEIPT = "record_receipt"  # manual offline receipt (bank slip)
+    WAIVE_FINE = "waive_fine"  # request or approve a fine waiver (two different officials)
     EXPORT_DATA = "export_data"
     PAYMENT_LINKING = "payment_linking"  # the chama's paybill/till and Daraja credentials
     # No step-up: stopping a change must always be easy.
@@ -44,6 +45,7 @@ WRITE_ACTIONS = frozenset(
         Action.CHANGE_ROLES,
         Action.EDIT_CONSTITUTION,
         Action.RECORD_RECEIPT,
+        Action.WAIVE_FINE,
         Action.EXPORT_DATA,
         Action.PAYMENT_LINKING,
         Action.REVIEW_CHAMA_CHANGES,
@@ -65,6 +67,7 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.CHANGE_ROLES: ALLOW,
         Action.EDIT_CONSTITUTION: ALLOW,
         Action.RECORD_RECEIPT: ALLOW,
+        Action.WAIVE_FINE: ALLOW,
         Action.EXPORT_DATA: ALLOW,
         Action.PAYMENT_LINKING: ALLOW,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
@@ -80,6 +83,7 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.CHANGE_ROLES: DENY,
         Action.EDIT_CONSTITUTION: ALLOW,
         Action.RECORD_RECEIPT: ALLOW,
+        Action.WAIVE_FINE: ALLOW,
         Action.EXPORT_DATA: ALLOW,
         Action.PAYMENT_LINKING: ALLOW,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
@@ -95,6 +99,7 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.CHANGE_ROLES: DENY,
         Action.EDIT_CONSTITUTION: ALLOW,
         Action.RECORD_RECEIPT: ALLOW,
+        Action.WAIVE_FINE: ALLOW,
         Action.EXPORT_DATA: DENY,
         Action.PAYMENT_LINKING: DENY,
         Action.REVIEW_CHAMA_CHANGES: ALLOW,
@@ -110,6 +115,7 @@ ROLE_ACTIONS: dict[Role, dict[Action, bool]] = {
         Action.CHANGE_ROLES: DENY,
         Action.EDIT_CONSTITUTION: DENY,
         Action.RECORD_RECEIPT: DENY,
+        Action.WAIVE_FINE: DENY,
         Action.EXPORT_DATA: DENY,
         Action.PAYMENT_LINKING: DENY,
         Action.REVIEW_CHAMA_CHANGES: DENY,

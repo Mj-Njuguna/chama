@@ -35,6 +35,17 @@ READ_ONLY_TABLES = {
     "organizations_membership": {"SELECT", "INSERT", "UPDATE"},
     "organizations_constitution": {"SELECT", "INSERT", "UPDATE"},
     "organizations_pendingchange": {"SELECT", "INSERT", "UPDATE"},
+    # Allocations and obligation payments are append-only; cycles, obligations (running paid
+    # totals) and waivers (approval) are updated, never deleted.
+    "contributions_allocation": {"SELECT", "INSERT"},
+    "contributions_obligationpayment": {"SELECT", "INSERT"},
+    "contributions_cycle": {"SELECT", "INSERT", "UPDATE"},
+    "contributions_obligation": {"SELECT", "INSERT", "UPDATE"},
+    "contributions_finewaiver": {"SELECT", "INSERT", "UPDATE"},
+    # The feed and provider refs are append-only; messages record delivery, never deleted.
+    "notifications_feedevent": {"SELECT", "INSERT"},
+    "notifications_providermessageref": {"SELECT", "INSERT"},
+    "notifications_message": {"SELECT", "INSERT", "UPDATE"},
 }
 FORBIDDEN_TABLE_PRIVILEGES = ("TRUNCATE", "REFERENCES", "TRIGGER")
 

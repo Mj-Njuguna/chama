@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 
 from core.env import env_int, env_list, env_str
@@ -185,6 +186,16 @@ TRUSTED_PROXY_COUNT = env_int("TRUSTED_PROXY_COUNT", 0)
 OTP_SENDERS: dict[str, str] = {}
 # Invitation sender (dotted path). Empty: invitations are seen in the app only.
 INVITE_SENDER = ""
+# Member message senders per channel (dotted paths), tried WhatsApp first, SMS on undeliverable.
+# Empty: messages are recorded as skipped. WhatsApp Cloud: "apps.notifications.whatsapp.
+# WhatsAppCloudSender" plus the WHATSAPP_* values below. No SMS provider is chosen yet.
+MESSAGE_SENDERS: dict[str, str] = {}
+WHATSAPP_API_VERSION = env_str("WHATSAPP_API_VERSION", "v27.0")
+WHATSAPP_PHONE_NUMBER_ID = env_str("WHATSAPP_PHONE_NUMBER_ID", "")
+WHATSAPP_ACCESS_TOKEN = env_str("WHATSAPP_ACCESS_TOKEN", "")
+WHATSAPP_TEMPLATE_LANGUAGE = env_str("WHATSAPP_TEMPLATE_LANGUAGE", "en")
+WHATSAPP_APP_SECRET = env_str("WHATSAPP_APP_SECRET", "")  # webhook signature (X-Hub-Signature-256)
+WHATSAPP_VERIFY_TOKEN = env_str("WHATSAPP_VERIFY_TOKEN", "")  # webhook subscription check
 # Hard wall-clock limit on every provider call.
 MESSAGING_PROVIDER_TIMEOUT_SECONDS = 5
 # Fakes and the dev OTP outbox: dev and test only (notifications.E001-E004).
@@ -247,7 +258,34 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
         "task": "apps.accounts.tasks.purge_otp_records",
         "schedule": 3600.0,
     },
+    # Contributions. Africa/Nairobi is UTC+3 with no daylight saving; times below are UTC.
+    # 00:05 EAT: late fines for contributions whose grace ended yesterday.
+    "contributions-assess-fines": {
+        "task": "apps.contributions.tasks.dispatch",
+        "schedule": crontab(hour=21, minute=5),
+        "args": ("assess_fines",),
+    },
+    # 00:30 EAT: cycles due within a week, and every active member's obligations.
+    "contributions-generate-cycles": {
+        "task": "apps.contributions.tasks.dispatch",
+        "schedule": crontab(hour=21, minute=30),
+        "args": ("generate_cycles",),
+    },
+    # 07:00 EAT: due-today reminders and the opt-in M-Pesa prompts.
+    "contributions-due-reminders": {
+        "task": "apps.contributions.tasks.dispatch",
+        "schedule": crontab(hour=4, minute=0),
+        "args": ("due_reminders",),
+    },
+    # 08:00 EAT: reminders three days before the due date.
+    "contributions-pre-reminders": {
+        "task": "apps.contributions.tasks.dispatch",
+        "schedule": crontab(hour=5, minute=0),
+        "args": ("pre_reminders",),
+    },
 }
+# Spread per-chama jobs over this many seconds (month-start bursts).
+CONTRIBUTIONS_JOB_JITTER_SECONDS = 15 * 60
 CELERY_BEAT_SCHEDULE_FILENAME = env_str("CELERY_BEAT_SCHEDULE_FILENAME", "/tmp/celerybeat-schedule")  # noqa: S108
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 

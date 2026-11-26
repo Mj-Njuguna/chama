@@ -17,3 +17,7 @@ OTP_SENDERS = {
 }
 INVITE_SENDER = "apps.notifications.invites.FakeInviteSender"
 PUSH_PROVIDER = "apps.notifications.fake.FakePushProvider"
+MESSAGE_SENDERS = {
+    "whatsapp": "apps.notifications.fake.FakeWhatsAppMessenger",
+    "sms": "apps.notifications.fake.FakeSmsMessenger",
+}

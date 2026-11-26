@@ -31,6 +31,7 @@ from apps.ledger.models import (
 )
 
 __all__ = [
+    "CashTransaction",
     "LedgerAccount",
     "Line",
     "Posted",
@@ -39,6 +40,7 @@ __all__ = [
     "account_balance",
     "balances_by_member",
     "cash_balance",
+    "cash_transactions",
     "member_balance",
     "post",
     "posted",
@@ -189,3 +191,33 @@ def transactions_for_member(member_id: uuid.UUID, limit: int = 50) -> list[Poste
             Posted(txn.id, txn.kind, txn.key, txn.memo, txn.created_at.isoformat(), lines)
         )
     return result
+
+
+@dataclass(frozen=True)
+class CashTransaction:
+    transaction_id: uuid.UUID
+    kind: str
+    memo: str
+    created_at: str
+    member_id: uuid.UUID | None
+    cash_minor: int  # money in (positive) or out (negative) of the chama's own accounts
+
+
+def cash_transactions(limit: int = 100) -> list[CashTransaction]:
+    """The chama's cashbook: transactions that moved its cash accounts, newest first."""
+    totals = (
+        LedgerEntry.objects.filter(ledger_account__in=CASH_ACCOUNTS)
+        .values("transaction_id")
+        .annotate(cash=Sum("amount_minor"))
+        .order_by()
+    )
+    cash_by_txn = {row["transaction_id"]: int(row["cash"]) for row in totals}
+    rows = LedgerTransaction.objects.filter(id__in=list(cash_by_txn)).order_by(
+        "-created_at", "-id"
+    )[:limit]
+    return [
+        CashTransaction(
+            t.id, t.kind, t.memo, t.created_at.isoformat(), t.member_id, cash_by_txn[t.id]
+        )
+        for t in rows
+    ]

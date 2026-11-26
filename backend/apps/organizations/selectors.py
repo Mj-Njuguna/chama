@@ -90,3 +90,67 @@ def active_member_ids() -> list[uuid.UUID]:
     return list(
         Membership.objects.filter(status=MembershipStatus.ACTIVE).values_list("id", flat=True)
     )
+
+
+@dataclass(frozen=True)
+class MemberContact:
+    """What messaging and scheduling need about one member (server-side use only)."""
+
+    member_id: uuid.UUID
+    user_id: uuid.UUID
+    phone: str
+    name: str
+    consented: bool  # accepted the chama's terms (invitation or creating the chama)
+    scheduled_stk_opt_in: bool
+
+
+def member_contacts(member_ids: list[uuid.UUID] | None = None) -> dict[uuid.UUID, MemberContact]:
+    """Active members of the current chama (RLS-scoped), optionally only ``member_ids``."""
+    rows = Membership.objects.filter(status=MembershipStatus.ACTIVE)
+    if member_ids is not None:
+        rows = rows.filter(id__in=set(member_ids))
+    found = rows.values_list(
+        "id",
+        "user_id",
+        "user__phone",
+        "roster_name",
+        "user__display_name",
+        "terms_accepted_at",
+        "scheduled_stk_opt_in",
+    )
+    return {
+        mid: MemberContact(
+            mid, uid, phone, display or roster or "", accepted is not None, bool(opt_in)
+        )
+        for mid, uid, phone, roster, display, accepted, opt_in in found
+    }
+
+
+def member_names(member_ids: list[uuid.UUID] | None = None) -> dict[uuid.UUID, str]:
+    """Display names of members of the current chama (any status), for official views."""
+    rows = Membership.objects.all()
+    if member_ids is not None:
+        rows = rows.filter(id__in=set(member_ids))
+    return {
+        mid: display or roster or ""
+        for mid, roster, display in rows.values_list("id", "roster_name", "user__display_name")
+    }
+
+
+def set_scheduled_stk_opt_in(membership_id: uuid.UUID, opt_in: bool) -> bool:
+    """Record the member's own choice about due-date payment prompts. Returns the new value."""
+    updated = Membership.objects.filter(id=membership_id, status=MembershipStatus.ACTIVE).update(
+        scheduled_stk_opt_in=opt_in
+    )
+    if not updated:
+        raise LookupError(membership_id)
+    return opt_in
+
+
+def scheduled_stk_opt_in(membership_id: uuid.UUID) -> bool:
+    """The member's own choice about due-date payment prompts."""
+    return bool(
+        Membership.objects.filter(id=membership_id)
+        .values_list("scheduled_stk_opt_in", flat=True)
+        .first()
+    )

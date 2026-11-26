@@ -102,6 +102,7 @@ def _action(client: Client, pair: TokenPair, action: Action) -> Any:
 def test_step_up_table():
     assert STEP_UP == {
         Action.RECORD_RECEIPT: ("pin",),
+        Action.WAIVE_FINE: ("pin",),
         Action.EDIT_CONSTITUTION: ("pin",),
         Action.MANAGE_MEMBERS: ("otp",),
         Action.CHANGE_ROLES: ("otp",),

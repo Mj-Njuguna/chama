@@ -607,6 +607,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: rate_limited (per IP)
+  /api/v1/chama/cashbook:
+    get:
+      operationId: chama_cashbook
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cashbook'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available, not_found
   /api/v1/chama/changes:
     get:
       operationId: chama_changes_list
@@ -679,6 +711,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: not_found (no open change)
+  /api/v1/chama/collection:
+    get:
+      operationId: chama_collection
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available, not_found
   /api/v1/chama/constitution:
     get:
       operationId: chama_constitution
@@ -754,6 +818,125 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: chama_not_available
+  /api/v1/chama/cycles/current:
+    get:
+      operationId: chama_cycle_current
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cycle'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available, not_found
+  /api/v1/chama/feed:
+    get:
+      operationId: chama_feed
+      description: The active chama's activity feed, newest first (every member).
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+  /api/v1/chama/fines/{obligation_id}/waive:
+    post:
+      operationId: chama_fine_waive
+      description: Request a waiver of a fine (an official, fresh PIN). A different
+        official approves.
+      parameters:
+      - in: path
+        name: obligation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - chama
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaiverRequestRequest'
+        required: true
+      security:
+      - bearerSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Waiver'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available, not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'state_conflict: fine_not_open, waiver_pending, waiver_decided,
+            same_official'
   /api/v1/chama/freeze:
     post:
       operationId: chama_freeze
@@ -1035,6 +1218,110 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: chama_not_available
+  /api/v1/chama/membership:
+    get:
+      operationId: chama_membership
+      description: The caller's own preferences in the active chama.
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MembershipPreferences'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+    patch:
+      operationId: chama_membership_update
+      description: The caller's own preferences in the active chama.
+      tags:
+      - chama
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMembershipPreferencesRequest'
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MembershipPreferences'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated, invalid_token, token_expired, session_revoked,
+            session_expired
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available
+  /api/v1/chama/obligations:
+    get:
+      operationId: chama_obligations
+      parameters:
+      - in: query
+        name: member
+        schema:
+          type: string
+        description: '`me` (default) or a membership id (officials only).'
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObligationList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available, not_found
   /api/v1/chama/receipts:
     get:
       operationId: chama_receipts
@@ -1153,6 +1440,130 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: permission_denied, step_up_required, pin_not_set, chama_frozen,
             cooling_off
+  /api/v1/chama/statement:
+    get:
+      operationId: chama_statement
+      parameters:
+      - in: query
+        name: member
+        schema:
+          type: string
+        description: '`me` (default) or a membership id (officials only).'
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statement'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available, not_found
+  /api/v1/chama/waivers:
+    get:
+      operationId: chama_waivers
+      parameters:
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - approved
+          - pending
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaiverList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available, not_found
+  /api/v1/chama/waivers/{waiver_id}/approve:
+    post:
+      operationId: chama_waiver_approve
+      parameters:
+      - in: path
+        name: waiver_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - chama
+      security:
+      - bearerSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Waiver'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_authenticated
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: permission_denied, step_up_required, pin_not_set, chama_frozen
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: chama_not_available, not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'state_conflict: fine_not_open, waiver_pending, waiver_decided,
+            same_official'
   /api/v1/chamas:
     get:
       operationId: chamas_list
@@ -1376,6 +1787,57 @@ components:
       - chama_id
       - member_code
       - role
+    AccountEnum:
+      enum:
+      - member_savings
+      - fines_receivable
+      - loans_receivable
+      - interest_receivable
+      type: string
+      description: |-
+        * `member_savings` - member_savings
+        * `fines_receivable` - fines_receivable
+        * `loans_receivable` - loans_receivable
+        * `interest_receivable` - interest_receivable
+    Cashbook:
+      type: object
+      properties:
+        balance_minor:
+          type: integer
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CashbookEntry'
+      required:
+      - balance_minor
+      - transactions
+    CashbookEntry:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        memo:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        member_id:
+          type: string
+          format: uuid
+          nullable: true
+        cash_minor:
+          type: integer
+          description: Money in (positive) or out (negative).
+      required:
+      - cash_minor
+      - created_at
+      - kind
+      - member_id
+      - memo
+      - transaction_id
     ChamaHome:
       type: object
       description: Values are null until the module that computes them is live.
@@ -1426,6 +1888,49 @@ components:
       - name
       - role
       - status
+    Collection:
+      type: object
+      properties:
+        cycle_id:
+          type: string
+          format: uuid
+          nullable: true
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionRow'
+      required:
+      - cycle_id
+      - members
+    CollectionRow:
+      type: object
+      properties:
+        member_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/CollectionRowStatusEnum'
+        balance_minor:
+          type: integer
+      required:
+      - balance_minor
+      - member_id
+      - name
+      - status
+    CollectionRowStatusEnum:
+      enum:
+      - paid
+      - partial
+      - unpaid
+      - overdue
+      type: string
+      description: |-
+        * `paid` - paid
+        * `partial` - partial
+        * `unpaid` - unpaid
+        * `overdue` - overdue
     ConstitutionOut:
       type: object
       properties:
@@ -1542,18 +2047,40 @@ components:
       - member_code
       - name
       - role
+    Cycle:
+      type: object
+      properties:
+        cycle_id:
+          type: string
+          format: uuid
+        period_start:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        grace_until:
+          type: string
+          format: date
+        amount_minor:
+          type: integer
+        status:
+          $ref: '#/components/schemas/CycleStatusEnum'
+      required:
+      - amount_minor
+      - cycle_id
+      - due_date
+      - grace_until
+      - period_start
+      - status
     CycleStatusEnum:
       enum:
-      - paid
-      - due
-      - overdue
-      - none
+      - open
+      - closed
       type: string
       description: |-
-        * `paid` - paid
-        * `due` - due
-        * `overdue` - overdue
-        * `none` - none
+        * `open` - open
+        * `closed` - closed
     DeviceList:
       type: object
       properties:
@@ -1730,6 +2257,10 @@ components:
             * `phone_digits` - phone_digits
             * `duplicate_receipt` - duplicate_receipt
             * `member_not_active` - member_not_active
+            * `fine_not_open` - fine_not_open
+            * `waiver_pending` - waiver_pending
+            * `waiver_decided` - waiver_decided
+            * `same_official` - same_official
         attempts_left:
           type: integer
           description: With invalid_pin.
@@ -1771,6 +2302,10 @@ components:
       - phone_digits
       - duplicate_receipt
       - member_not_active
+      - fine_not_open
+      - waiver_pending
+      - waiver_decided
+      - same_official
       type: string
       description: |-
         * `invalid_format` - invalid_format
@@ -1783,6 +2318,42 @@ components:
         * `phone_digits` - phone_digits
         * `duplicate_receipt` - duplicate_receipt
         * `member_not_active` - member_not_active
+        * `fine_not_open` - fine_not_open
+        * `waiver_pending` - waiver_pending
+        * `waiver_decided` - waiver_decided
+        * `same_official` - same_official
+    FeedEvent:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: {}
+      required:
+      - created_at
+      - event_id
+      - kind
+      - payload
+    FeedPage:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedEvent'
+        next_cursor:
+          type: string
+          nullable: true
+      required:
+      - events
+      - next_cursor
     FreshFactor:
       type: object
       properties:
@@ -1906,11 +2477,6 @@ components:
       required:
       - name
       - phone
-    KindEnum:
-      enum:
-      - payment_details
-      type: string
-      description: '* `payment_details` - payment_details'
     Login:
       type: object
       properties:
@@ -2109,6 +2675,14 @@ components:
       - chama_id
       - role
       - status
+    MembershipPreferences:
+      type: object
+      properties:
+        scheduled_stk_opt_in:
+          type: boolean
+          description: Receive the M-Pesa prompt on contribution due dates.
+      required:
+      - scheduled_stk_opt_in
     MembershipStatusEnum:
       enum:
       - active
@@ -2122,6 +2696,60 @@ components:
     NullEnum:
       enum:
       - null
+    Obligation:
+      type: object
+      properties:
+        obligation_id:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/ObligationKindEnum'
+        due_date:
+          type: string
+          format: date
+        amount_minor:
+          type: integer
+        paid_minor:
+          type: integer
+        balance_minor:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ObligationStatusEnum'
+      required:
+      - amount_minor
+      - balance_minor
+      - due_date
+      - kind
+      - obligation_id
+      - paid_minor
+      - status
+    ObligationKindEnum:
+      enum:
+      - contribution
+      - fine
+      type: string
+      description: |-
+        * `contribution` - Contribution
+        * `fine` - Fine
+    ObligationList:
+      type: object
+      properties:
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Obligation'
+      required:
+      - obligations
+    ObligationStatusEnum:
+      enum:
+      - open
+      - paid
+      - waived
+      type: string
+      description: |-
+        * `open` - Open
+        * `paid` - Paid
+        * `waived` - Waived
     OtpRequestRequest:
       type: object
       properties:
@@ -2245,6 +2873,12 @@ components:
           description: 1 to 50 characters after trimming; no control or invisible
             characters.
           maxLength: 200
+    PatchedMembershipPreferencesRequest:
+      type: object
+      properties:
+        scheduled_stk_opt_in:
+          type: boolean
+          description: Receive the M-Pesa prompt on contribution due dates.
     PaymentChannelEnum:
       enum:
       - paybill
@@ -2270,7 +2904,7 @@ components:
           type: string
           format: uuid
         kind:
-          $ref: '#/components/schemas/KindEnum'
+          $ref: '#/components/schemas/PendingChangeKindEnum'
         status:
           $ref: '#/components/schemas/PendingChangeStatusEnum'
         requested_by_user_id:
@@ -2295,6 +2929,11 @@ components:
       - requested_at
       - requested_by_user_id
       - status
+    PendingChangeKindEnum:
+      enum:
+      - payment_details
+      type: string
+      description: '* `payment_details` - payment_details'
     PendingChangeStatusEnum:
       enum:
       - pending
@@ -2327,6 +2966,7 @@ components:
       - change_roles
       - edit_constitution
       - record_receipt
+      - waive_fine
       - export_data
       - payment_linking
       - review_chama_changes
@@ -2342,6 +2982,7 @@ components:
         * `change_roles` - change_roles
         * `edit_constitution` - edit_constitution
         * `record_receipt` - record_receipt
+        * `waive_fine` - waive_fine
         * `export_data` - export_data
         * `payment_linking` - payment_linking
         * `review_chama_changes` - review_chama_changes
@@ -2606,6 +3247,45 @@ components:
             $ref: '#/components/schemas/SecurityEventOut'
       required:
       - events
+    Statement:
+      type: object
+      properties:
+        member_id:
+          type: string
+          format: uuid
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatementEntry'
+      required:
+      - entries
+      - member_id
+    StatementEntry:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        memo:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        account:
+          $ref: '#/components/schemas/AccountEnum'
+        amount_minor:
+          type: integer
+          description: 'Savings: positive adds to savings. Fines and loans: positive
+            adds to what the member owes.'
+      required:
+      - account
+      - amount_minor
+      - created_at
+      - kind
+      - memo
+      - transaction_id
     StepUpFactorEnum:
       enum:
       - otp
@@ -2676,6 +3356,76 @@ components:
       description: |-
         * `expo` - expo
         * `fcm` - fcm
+    Waiver:
+      type: object
+      properties:
+        waiver_id:
+          type: string
+          format: uuid
+        obligation_id:
+          type: string
+          format: uuid
+        member_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        status:
+          $ref: '#/components/schemas/WaiverStatusEnum'
+        requested_by_member_id:
+          type: string
+          format: uuid
+        approved_by_member_id:
+          type: string
+          format: uuid
+          nullable: true
+        amount_minor:
+          type: integer
+          description: The fine's open balance to waive.
+        created_at:
+          type: string
+          format: date-time
+        decided_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - amount_minor
+      - approved_by_member_id
+      - created_at
+      - decided_at
+      - member_id
+      - obligation_id
+      - reason
+      - requested_by_member_id
+      - status
+      - waiver_id
+    WaiverList:
+      type: object
+      properties:
+        waivers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Waiver'
+      required:
+      - waivers
+    WaiverRequestRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - reason
+    WaiverStatusEnum:
+      enum:
+      - pending
+      - approved
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `approved` - Approved
   securitySchemes:
     bearerSession:
       type: http
